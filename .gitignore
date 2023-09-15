@@ -1,3 +1,4 @@
 *.csv
 Docs
 Data/Investing_PMI/chromedriver.exe
+venv
