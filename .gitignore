@@ -4,8 +4,6 @@ Data/Investing_PMI/Data_Service_PMI/*.csv
 Data/Investing_PMI/chromedriver.exe
 Data/IMF_Stats/RawData/*.csv
 Data/WorldBankData_Stats/*.csv
-Data/YahooFinance_Indexes/*.csv
-Data/YahooFinance_Indexes/Data from Investing_2023-08-03/*.csv
 Data/~$Data Sources Coverage_ACWI.xlsx
 Docs
 venv
