@@ -1,7 +1,7 @@
 Data/BIS_CentralBankRates/RawData/*.csv
 Data/Investing_PMI/Data_01-08/*.csv
 Data/Investing_PMI/Data_Service_PMI/*.csv
-Data/Investing_PMI/chromedriver.exe
+Data/chromedriver.exe
 Data/IMF_Stats/RawData/*.csv
 Data/WorldBankData_Stats/*.csv
 Data/~$Data Sources Coverage_ACWI.xlsx
