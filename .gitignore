@@ -6,5 +6,8 @@ Data/IMF_Stats/RawData/*.csv
 Data/WorldBankData_Stats/*.csv
 Data/YahooFinance_CurrencyRates/Rates_to_2008/*.csv
 Data/~$Data Sources Coverage_ACWI.xlsx
+Data/IronIA_IndexFunds/Data/*.csv
 Docs
 venv
+Data/IronIA_IndexFunds/harazinlt.json
+Data/yahoo-ticker-symbols.xlsx
