@@ -11,3 +11,4 @@ Docs
 venv
 Data/IronIA_IndexFunds/harazinlt.json
 Data/yahoo-ticker-symbols.xlsx
+Data/OECD_Stats/__pycache__/*
