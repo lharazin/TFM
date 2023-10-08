@@ -97,7 +97,7 @@ countries = 'AUS+AUT+BEL+CAN+CHL+COL+CZE+DNK+FIN+FRA+DEU+GRC+HUN+IRL+ISR+ITA+JPN
 
 def get_oecd_data(indicator, subject, measure, freq, file_name, 
                   countries_before_subject=False, with_measure=True,
-                  filter_measure_on_df=False):
+                  filter_measure_on_df=False, with_freq=True):
     if freq == 'Q':
         startTime = '1999-Q1'
     else:
@@ -110,8 +110,10 @@ def get_oecd_data(indicator, subject, measure, freq, file_name,
     
     if with_measure:
         url = f'https://stats.oecd.org/SDMX-JSON/data/{indicator}/{countries_and_subject}.{measure}.{freq}/all?startTime={startTime}&contentType=csv'
-    else:
+    elif with_freq:
         url = f'https://stats.oecd.org/SDMX-JSON/data/{indicator}/{countries_and_subject}.{freq}/all?startTime={startTime}&contentType=csv'
+    else:
+        url = f'https://stats.oecd.org/SDMX-JSON/data/{indicator}/{countries_and_subject}/all?startTime={startTime}&contentType=csv'
 
     print(url)
     res = get_legacy_session().get(url)
