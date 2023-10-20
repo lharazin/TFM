@@ -14,3 +14,5 @@ Data/yahoo-ticker-symbols.xlsx
 Data/OECD_Stats/__pycache__/*
 Data/~$Cataloged_Indicators.xlsx
 Data/chromedriver_116.exe
+Data/Investing_EconomicCalendar/.env
+Data/Investing_EconomicCalendar/economic_calendar.csv
