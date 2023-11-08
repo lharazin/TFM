@@ -13,31 +13,34 @@ class InvestingWebScrapper:
         options = webdriver.ChromeOptions()
         self.driver = webdriver.Chrome(service=service, options=options)
 
-    def open_economic_calendar(self):
+    def open_economic_calendar(self, select_yesterday=True):
         self.driver.get('https://www.investing.com/economic-calendar/')
-        time.sleep(2)
+        time.sleep(1)
 
         botton_cookies = self.driver.find_element(
             By.XPATH, '//*[@id="onetrust-accept-btn-handler"]'
         )
         botton_cookies.click()
-        time.sleep(2)
+        time.sleep(1)
 
-        for _ in range(30):
-            botton_signup = self.driver.find_element(
-                By.XPATH, '//*[@id="PromoteSignUpPopUp"]/div[2]/i')
-            print('.', end='')
-            if botton_signup.is_displayed():
-                botton_signup.click()
-                break
-            else:
-                time.sleep(2)
+        self.select_all_countries()
 
-    def read_all_indicators(self):
-        self.driver.execute_script(
-            "window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(5)
+        if select_yesterday:
+            self.driver.execute_script(
+                "window.scrollTo(0, 0);")
+            time.sleep(1)
 
+            self.close_sign_in_if_open()
+            botton_yesterday = self.driver.find_element(
+                By.XPATH, '//*[@id="timeFrame_yesterday"]'
+            )
+            botton_yesterday.click()
+            time.sleep(1)
+
+    def read_all_indicators(self, scroll_wait=1):
+        self.scroll_to_bottom(scroll_wait)
+
+        self.close_sign_in_if_open()
         table = self.driver.find_element(
             By.XPATH, '//*[@class="eCalNew eCalMainNew ecoCalCont"]'
         )
@@ -52,13 +55,7 @@ class InvestingWebScrapper:
         # Remove rows with dates
         df_filtered = df_filtered[df_filtered['Imp.'].isna()]
 
-        flags = self.driver.find_elements(
-            By.XPATH, '//*[@class="left flagCur noWrap"]/span'
-        )
-        countries = []
-        for flag in flags:
-            countries.append(flag.get_attribute('title'))
-        df_filtered['Country'] = countries
+        df_filtered['Country'] = self.read_countries_from_flags()
 
         # Get only indicators
         df_filtered = df_filtered[(~df_filtered['Actual'].isna()) &
@@ -69,4 +66,64 @@ class InvestingWebScrapper:
 
         df = df_filtered[['DateTime', 'Country', 'Currency', 'Event',
                           'Actual', 'Forecast', 'Previous']]
+
+        df = self.filter_countries(df)
         return df
+
+    def close_sign_in_if_open(self):
+        botton_signup = self.driver.find_element(
+            By.XPATH, '//*[@id="PromoteSignUpPopUp"]/div[2]/i')
+        if botton_signup.is_displayed():
+            botton_signup.click()
+
+    def select_all_countries(self):
+        self.close_sign_in_if_open()
+        botton_filter = self.driver.find_element(
+            By.XPATH, '//*[@id="filterStateAnchor"]'
+        )
+        botton_filter.click()
+        time.sleep(1)
+
+        self.close_sign_in_if_open()
+        botton_select_all = self.driver.find_element(
+            By.XPATH, '//*[@onclick="selectAll(\'country[]\');"]'
+        )
+        botton_select_all.click()
+        time.sleep(1)
+
+        self.close_sign_in_if_open()
+        botton_submit = self.driver.find_element(
+            By.XPATH, '//*[@id="ecSubmitButton"]'
+        )
+        botton_submit.click()
+        time.sleep(3)
+
+    def scroll_to_bottom(self, sleep_time):
+        self.driver.execute_script(
+            "window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(sleep_time)
+
+    def read_countries_from_flags(self):
+        flags = self.driver.find_elements(
+            By.XPATH, '//*[@class="left flagCur noWrap"]/span'
+        )
+        countries = []
+        for flag in flags:
+            countries.append(flag.get_attribute('title'))
+        return countries
+
+    def filter_countries(self, df):
+        all_countries = ['United States', 'Japan', 'United Kingdom', 'Canada',
+                         'France', 'Switzerland', 'Germany', 'Australia',
+                         'Netherlands', 'Sweden', 'Spain', 'Hong Kong',
+                         'Italy', 'Singapore', 'Belgium', 'Norway', 'Israel',
+                         'Ireland', 'New Zealand', 'Austria', 'Euro Zone',
+                         'China', 'Taiwan', 'India', 'South Korea', 'Brazil',
+                         'Saudi Arabia', 'South Africa', 'Mexico', 'Indonesia',
+                         'Türkiye', 'Poland', 'Argentina', 'Russia']
+
+        df_to_save = df[df['Country'].isin(all_countries)]
+        return df_to_save
+
+    def close_browser(self):
+        self.driver.close()
