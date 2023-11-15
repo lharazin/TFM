@@ -1,0 +1,5 @@
+pandas
+sqlalchemy
+pyodbc
+lxml
+selenium==4.4.2

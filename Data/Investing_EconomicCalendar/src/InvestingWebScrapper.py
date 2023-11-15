@@ -4,14 +4,51 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 import time
 from io import StringIO
+import uuid
+import os
 
 
 class InvestingWebScrapper:
 
-    def __init__(self):
-        service = Service(executable_path='../chromedriver.exe')
-        options = webdriver.ChromeOptions()
-        self.driver = webdriver.Chrome(service=service, options=options)
+    def __init__(self, linux=False):
+        if linux:
+            self._tmp_folder = '/tmp/{}'.format(uuid.uuid4())
+            if not os.path.exists(self._tmp_folder):
+                os.makedirs(self._tmp_folder)
+
+            if not os.path.exists(self._tmp_folder + '/chrome-user-data'):
+                os.makedirs(self._tmp_folder + '/chrome-user-data')
+
+            if not os.path.exists(self._tmp_folder + '/data-path'):
+                os.makedirs(self._tmp_folder + '/data-path')
+
+            if not os.path.exists(self._tmp_folder + '/cache-dir'):
+                os.makedirs(self._tmp_folder + '/cache-dir')
+
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.binary_location = "/opt/chrome/chrome"
+            chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--disable-dev-tools")
+            chrome_options.add_argument("--no-zygote")
+            chrome_options.add_argument("--single-process")
+            chrome_options.add_argument("window-size=2560x1440")
+            chrome_options.add_argument(
+                f"--user-data-dir={self._tmp_folder}/chrome-user-data")
+            chrome_options.add_argument(
+                f"--data-path={self._tmp_folder}/data-path")
+            chrome_options.add_argument(
+                f"--disk-cache-dir={self._tmp_folder}/cache-dir")
+            chrome_options.add_argument("--remote-debugging-port=9222")
+            self.driver = webdriver.Chrome("/opt/chromedriver",
+                                           options=chrome_options)
+
+        else:
+            service = Service(executable_path='../chromedriver.exe')
+            options = webdriver.ChromeOptions()
+            self.driver = webdriver.Chrome(service=service, options=options)
 
     def open_economic_calendar(self, select_yesterday=True):
         self.driver.get('https://www.investing.com/economic-calendar/')
@@ -127,3 +164,4 @@ class InvestingWebScrapper:
 
     def close_browser(self):
         self.driver.close()
+        self.driver.quit()
