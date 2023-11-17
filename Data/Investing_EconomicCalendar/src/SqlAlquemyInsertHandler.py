@@ -1,5 +1,6 @@
 import sqlalchemy as sal
 import os
+import pandas as pd
 
 
 class SqlAlquemyInsertHandler:
@@ -57,6 +58,33 @@ class SqlAlquemyInsertHandler:
             connection.execute(sal.text(
                 "DELETE FROM [InvestingEconomicCalendar]"))
             connection.commit()
+
+    def read_indicator(self, indicator, alt_indicator=''):
+        records = []
+
+        if alt_indicator != '':
+            alt_indicator = f" OR [Indicator] LIKE '%{alt_indicator}%' "
+
+        with self.engine.connect() as connection:
+            result = connection.execute(sal.text(f"""
+                SELECT [Id]
+                    ,[ReportDateTime]
+                    ,[Country]
+                    ,[Currency]
+                    ,[Indicator]
+                    ,[Actual]
+                    ,[Forecast]
+                    ,[Previous]
+                FROM [dbo].[InvestingEconomicCalendar]
+                WHERE [Indicator] LIKE '%{indicator}%' {alt_indicator}
+                ORDER BY [ReportDateTime]
+            """))
+            for row in result:
+                records.append(row)
+
+        df = pd.DataFrame(records)
+        print(len(df), 'options to calculate')
+        return df
 
     def __get_sql_alquemy_engine(self):
         db_server_address = os.environ.get("AWS_DB_SERVER_ADDRESS")
