@@ -83,7 +83,32 @@ class SqlAlquemyInsertHandler:
                 records.append(row)
 
         df = pd.DataFrame(records)
-        print(len(df), 'options to calculate')
+        print(len(df), 'indicators read')
+        return df
+
+    def read_all_indicators(self, year):
+        records = []
+
+        with self.engine.connect() as connection:
+            result = connection.execute(sal.text(f"""
+                SELECT [Id]
+                    ,[ReportDateTime]
+                    ,[Country]
+                    ,[Currency]
+                    ,[Indicator]
+                    ,[Actual]
+                    ,[Forecast]
+                    ,[Previous]
+                FROM [dbo].[InvestingEconomicCalendar]
+                WHERE [ReportDateTime] BETWEEN '{year}-01-01' 
+                    AND '{year}-12-31'
+                ORDER BY [ReportDateTime]
+            """))
+            for row in result:
+                records.append(row)
+
+        df = pd.DataFrame(records)
+        print(len(df), 'indicators read')
         return df
 
     def __get_sql_alquemy_engine(self):
