@@ -111,6 +111,40 @@ class SqlAlquemyInsertHandler:
         print(len(df), 'indicators read')
         return df
 
+    def read_count_by_country(self):
+        records = []
+
+        with self.engine.connect() as connection:
+            result = connection.execute(sal.text("""
+                SELECT DATEADD(MONTH, DATEDIFF(MONTH, 0,
+                        [ReportDateTime]), 0) AS [MonthStart]
+                    ,[Country]
+                    ,COUNT(*) AS Count
+                FROM [dbo].[InvestingEconomicCalendar]
+                WHERE [ReportDateTime] <= '2018-12-31'
+                GROUP BY DATEADD(MONTH, DATEDIFF(MONTH, 0,
+                    [ReportDateTime]), 0), [Country]
+            """))
+            for row in result:
+                records.append(row)
+
+            result2 = connection.execute(sal.text("""
+                SELECT DATEADD(MONTH, DATEDIFF(MONTH, 0,
+                        [ReportDateTime]), 0) AS [MonthStart]
+                    ,[Country]
+                    ,COUNT(*) AS Count
+                FROM [dbo].[InvestingEconomicCalendar]
+                WHERE [ReportDateTime] >= '2019-01-01'
+                GROUP BY DATEADD(MONTH, DATEDIFF(MONTH, 0,
+                    [ReportDateTime]), 0), [Country]
+            """))
+            for row in result2:
+                records.append(row)
+
+        df = pd.DataFrame(records)
+        print(len(df), 'indicators read')
+        return df
+
     def __get_sql_alquemy_engine(self):
         db_server_address = os.environ.get("AWS_DB_SERVER_ADDRESS")
         db_server_port = 1433
