@@ -121,7 +121,7 @@ class SqlAlquemyInsertHandler:
                     ,[Country]
                     ,COUNT(*) AS Count
                 FROM [dbo].[InvestingEconomicCalendar]
-                WHERE [ReportDateTime] <= '2018-12-31'
+                WHERE [ReportDateTime] <= '2015-12-31'
                 GROUP BY DATEADD(MONTH, DATEDIFF(MONTH, 0,
                     [ReportDateTime]), 0), [Country]
             """))
@@ -134,7 +134,7 @@ class SqlAlquemyInsertHandler:
                     ,[Country]
                     ,COUNT(*) AS Count
                 FROM [dbo].[InvestingEconomicCalendar]
-                WHERE [ReportDateTime] >= '2019-01-01'
+                WHERE [ReportDateTime] >= '2016-01-01'
                 GROUP BY DATEADD(MONTH, DATEDIFF(MONTH, 0,
                     [ReportDateTime]), 0), [Country]
             """))

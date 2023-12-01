@@ -11,8 +11,11 @@ def handler(event, context):
 
     df = web_scrapper.read_all_indicators()
     web_scrapper.close_browser()
-    print('Read', len(df), 'indicators from',
-          df.iloc[0, 0], 'to', df.iloc[-1, 0])
+    if (len(df) > 0):
+        print('Read', len(df), 'indicators from',
+              df.iloc[0, 0], 'to', df.iloc[-1, 0])
+    else:
+        print('No events found')
     print(df)
     sql_handler.insert_into_table(df)
 

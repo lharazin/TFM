@@ -8,15 +8,19 @@ load_dotenv()
 class InvestingCalendarPreprocessor:
 
     def __init__(self):
-        self.all_countries = ['United States', 'Japan', 'United Kingdom',
-                              'Canada', 'France', 'Switzerland', 'Germany',
-                              'Australia', 'Netherlands', 'Sweden', 'Spain',
-                              'Hong Kong', 'Italy', 'Singapore', 'Belgium',
-                              'Norway', 'Israel', 'Ireland', 'New Zealand',
-                              'Austria', 'Euro Zone', 'China', 'Taiwan',
-                              'India', 'South Korea', 'Brazil', 'Saudi Arabia',
-                              'South Africa', 'Mexico', 'Indonesia',
-                              'Türkiye', 'Poland', 'Argentina', 'Russia']
+        self.all_countries = [
+            'United States', 'Japan', 'United Kingdom', 'Canada',
+            'France', 'Switzerland', 'Germany', 'Australia',
+            'Netherlands', 'Denmark', 'Sweden', 'Spain',
+            'Hong Kong', 'Italy', 'Singapore', 'Finland',
+            'Belgium', 'Norway', 'Israel', 'Ireland',
+            'New Zealand', 'Austria', 'Portugal', 'Euro Zone',
+            'China', 'Taiwan', 'India', 'South Korea', 'Brazil',
+            'Saudi Arabia', 'South Africa', 'Mexico', 'Thailand',
+            'Indonesia',   'Malaysia', 'United Arab Emirates',
+            'Qatar', 'Kuwait', 'Türkiye',  'Philippines',
+            'Poland', 'Chile', 'Greece', 'Peru', 'Hungary',
+            'Czech Republic', 'Egypt', 'Colombia', 'Argentina', 'Russia']
         self.pmi_prefixes = [
             'S&P Global Hong Kong ',
             'S&P Global Canada ',
@@ -95,7 +99,7 @@ class InvestingCalendarPreprocessor:
         df.index = df['MonthStart']
         df.index.name = None
 
-        period = pd.period_range('2012-01-01', '2023-11-01', freq='M')
+        period = pd.period_range('1999-01-01', '2023-11-01', freq='M')
         df_summary = pd.DataFrame(index=period.to_timestamp(),
                                   columns=self.all_countries)
         for country in self.all_countries:
@@ -174,7 +178,7 @@ class InvestingCalendarPreprocessor:
         return df_processed
 
     def transform_to_countries_df(self, df_processed, freq):
-        period = pd.period_range('2012-01-01', '2023-11-01', freq=freq)
+        period = pd.period_range('1999-01-01', '2023-11-01', freq=freq)
         period = period.to_timestamp()
 
         df_processed.index = df_processed['Period']

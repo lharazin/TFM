@@ -152,12 +152,17 @@ class InvestingWebScrapper:
     def filter_countries(self, df):
         all_countries = ['United States', 'Japan', 'United Kingdom', 'Canada',
                          'France', 'Switzerland', 'Germany', 'Australia',
-                         'Netherlands', 'Sweden', 'Spain', 'Hong Kong',
-                         'Italy', 'Singapore', 'Belgium', 'Norway', 'Israel',
-                         'Ireland', 'New Zealand', 'Austria', 'Euro Zone',
+                         'Netherlands', 'Denmark', 'Sweden', 'Spain',
+                         'Hong Kong', 'Italy', 'Singapore', 'Finland',
+                         'Belgium', 'Norway', 'Israel', 'Ireland',
+                         'New Zealand', 'Austria', 'Portugal', 'Euro Zone',
                          'China', 'Taiwan', 'India', 'South Korea', 'Brazil',
-                         'Saudi Arabia', 'South Africa', 'Mexico', 'Indonesia',
-                         'Türkiye', 'Poland', 'Argentina', 'Russia']
+                         'Saudi Arabia', 'South Africa', 'Mexico', 'Thailand',
+                         'Indonesia',   'Malaysia', 'United Arab Emirates',
+                         'Qatar', 'Kuwait', 'Türkiye',  'Philippines',
+                         'Poland', 'Chile', 'Greece', 'Peru', 'Hungary',
+                         'Czech Republic', 'Egypt', 'Colombia',
+                         'Argentina', 'Russia']
 
         df_to_save = df[df['Country'].isin(all_countries)]
         return df_to_save
