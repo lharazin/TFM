@@ -11,7 +11,6 @@ Docs
 venv
 Data/IronIA_IndexFunds/harazinlt.json
 Data/yahoo-ticker-symbols.xlsx
-Data/OECD_Stats/__pycache__/*
 Data/~$Cataloged_Indicators.xlsx
 Data/Investing_EconomicCalendar/.env
 Data/Investing_EconomicCalendar/src/__pycache__
@@ -21,4 +20,4 @@ Data/Investing_EconomicCalendar/terraform/.terraform.lock.hcl
 Data/Investing_EconomicCalendar/terraform/terraform.tfstate
 Data/Investing_EconomicCalendar/terraform/.terraform/providers/registry.terraform.io/hashicorp/aws/4.67.0/windows_amd64/terraform-provider-aws_v4.67.0_x5.exe
 Data/Investing_EconomicCalendar/terraform/terraform.tfstate.backup
-Data/Investing_EconomicCalendar/__pycache__/
+__pycache__/

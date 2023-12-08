@@ -3,7 +3,7 @@ FROM public.ecr.aws/lambda/python:3.11 as stage
 # Hack to install chromium dependencies
 RUN yum install -y -q sudo unzip
 # Install Chromium
-COPY install-browser.sh /tmp/
+COPY setup/install-browser.sh /tmp/
 RUN /usr/bin/bash /tmp/install-browser.sh
 
 FROM public.ecr.aws/lambda/python:3.11 as base
@@ -20,7 +20,7 @@ RUN yum update -y \
     && yum install -y gcc-c++ \
     && yum clean all
 
-COPY chrome-deps.txt /tmp/
+COPY setup/chrome-deps.txt /tmp/
 RUN yum install -y $(cat /tmp/chrome-deps.txt)
 COPY --from=stage /opt/chrome /opt/chrome
 COPY --from=stage /opt/chromedriver /opt/chromedriver
