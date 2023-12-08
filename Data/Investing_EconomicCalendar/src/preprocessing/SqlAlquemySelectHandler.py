@@ -50,7 +50,7 @@ class SqlAlquemySelectHandler:
                     ,[Forecast]
                     ,[Previous]
                 FROM [dbo].[InvestingEconomicCalendar]
-                WHERE [ReportDateTime] BETWEEN '{year}-01-01' 
+                WHERE [ReportDateTime] BETWEEN '{year}-01-01'
                     AND '{year}-12-31'
                 ORDER BY [ReportDateTime]
             """))
