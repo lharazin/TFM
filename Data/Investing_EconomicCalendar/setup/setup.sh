@@ -3,7 +3,7 @@ aws configure
 aws ecr get-login-password | docker login --username AWS --password-stdin \
     669885634214.dkr.ecr.eu-central-1.amazonaws.com
 
-#aws ecr create-repository --repository-name lambda_economic_calendar --region eu-central-1
+aws ecr create-repository --repository-name lambda_economic_calendar --region eu-central-1
 
 docker build -t lambda_economic_calendar \
     -f ./dockerfiles/Dockerfile .

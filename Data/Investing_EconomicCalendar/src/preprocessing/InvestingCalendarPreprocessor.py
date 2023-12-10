@@ -11,22 +11,22 @@ class InvestingCalendarPreprocessor:
         self.all_countries = [
             'United States', 'Japan', 'United Kingdom', 'Canada', 'France',
             'Switzerland', 'Germany', 'Australia', 'Netherlands', 'Denmark',
-            'Sweden', 'Spain', 'Hong Kong', 'Italy', 'Singapore',
-            'Finland', 'Belgium', 'Norway', 'Israel', 'Ireland',
-            'New Zealand', 'Austria', 'Portugal', 'Euro Zone',
-            'China', 'Taiwan', 'India', 'South Korea', 'Brazil',
-            'Saudi Arabia', 'South Africa', 'Mexico', 'Thailand',
-            'Indonesia', 'Malaysia', 'United Arab Emirates', 'Qatar',
-            'Kuwait', 'Türkiye', 'Philippines', 'Poland', 'Chile',
-            'Greece', 'Peru', 'Hungary', 'Czech Republic', 'Egypt',
-            'Colombia', 'Argentina', 'Russia']
+            'Sweden', 'Spain', 'Hong Kong', 'Italy', 'Singapore', 'Finland',
+            'Belgium', 'Norway', 'Israel', 'Ireland', 'New Zealand', 'Austria',
+            'Portugal', 'Eurozone', 'China', 'Taiwan', 'India', 'Korea',
+            'Brazil', 'Saudi Arabia', 'South Africa', 'Mexico', 'Thailand',
+            'Indonesia', 'Malaysia', 'United Arab Emirates', 'Qatar', 'Kuwait',
+            'Turkiye', 'Philippines', 'Poland', 'Chile', 'Greece', 'Peru',
+            'Hungary', 'Czechia', 'Egypt', 'Colombia', 'Argentina', 'Russia']
+
         self.selected_countries = [
             'United States', 'Japan', 'United Kingdom', 'Canada', 'France',
             'Switzerland', 'Germany', 'Australia', 'Netherlands', 'Sweden',
             'Spain', 'Italy', 'Belgium', 'Norway', 'Israel', 'Ireland',
-            'Austria', 'China', 'Taiwan', 'India', 'South Korea', 'Brazil',
+            'Austria', 'China', 'Taiwan', 'India', 'Korea', 'Brazil',
             'Saudi Arabia', 'South Africa', 'Mexico', 'Indonesia',
-            'Türkiye',  'Poland', 'Argentina', 'Russia']
+            'Turkiye',  'Poland', 'Argentina', 'Russia']
+
         self.pmi_prefixes = [
             'S&P Global Hong Kong ',
             'S&P Global Canada ',
@@ -83,6 +83,7 @@ class InvestingCalendarPreprocessor:
             'FGV ',
             'GfK '
         ]
+
         self.quarterly_suffixes = [' (Q1)', ' (Q2)', ' (Q3)', ' (Q4)']
         self.monthly_suffixes = [' (Jan)', ' (Feb)', ' (Mar)', ' (Apr)',
                                  ' (May)', ' (Jun)', ' (Jul)', ' (Aug)',
@@ -253,7 +254,7 @@ class InvestingCalendarPreprocessor:
         nas = df_countries.isna().sum().sum()
         total = df_countries.shape[0]*df_countries.shape[1]
         coverage_25y = round((total - nas)/total*100, 1)
-        print('Data coverage since 1999:', coverage_25y, '%')
+        print('Data coverage since 1999 (50 countries):', coverage_25y, '%')
 
         df_recent = df_countries['2013':][self.selected_countries]
         nas = df_recent.isna().sum().sum()

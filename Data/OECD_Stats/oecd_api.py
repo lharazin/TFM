@@ -13,13 +13,12 @@ pd.options.mode.chained_assignment = None  # default='warn'
 all_countries = [
     'United States', 'Japan', 'United Kingdom', 'Canada', 'France',
     'Switzerland', 'Germany', 'Australia', 'Netherlands', 'Denmark',
-    'Sweden', 'Spain', 'Hong Kong', 'Italy', 'Singapore',
-    'Finland', 'Belgium', 'Norway', 'Israel', 'Ireland',
-    'New Zealand', 'Austria', 'Portugal', 'Eurozone',
-    'China', 'Taiwan', 'India', 'Korea', 'Brazil',
-    'Saudi Arabia', 'South Africa', 'Mexico', 'Thailand', 'Indonesia',
-    'Malaysia', 'United Arab Emirates', 'Qatar', 'Kuwait', 'Turkiye',
-    'Philippines', 'Poland', 'Chile', 'Greece', 'Peru',
+    'Sweden', 'Spain', 'Hong Kong', 'Italy', 'Singapore', 'Finland',
+    'Belgium', 'Norway', 'Israel', 'Ireland', 'New Zealand', 'Austria',
+    'Portugal', 'Eurozone', 'China', 'Taiwan', 'India', 'Korea',
+    'Brazil', 'Saudi Arabia', 'South Africa', 'Mexico', 'Thailand',
+    'Indonesia', 'Malaysia', 'United Arab Emirates', 'Qatar', 'Kuwait',
+    'Turkiye', 'Philippines', 'Poland', 'Chile', 'Greece', 'Peru',
     'Hungary', 'Czechia', 'Egypt', 'Colombia', 'Argentina', 'Russia']
 
 all_countries_in_oecd = [

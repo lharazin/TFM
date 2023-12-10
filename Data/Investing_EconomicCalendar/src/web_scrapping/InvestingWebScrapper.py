@@ -11,6 +11,17 @@ import os
 class InvestingWebScrapper:
 
     def __init__(self, linux=False):
+        self.all_countries = [
+            'United States', 'Japan', 'United Kingdom', 'Canada', 'France',
+            'Switzerland', 'Germany', 'Australia', 'Netherlands', 'Denmark',
+            'Sweden', 'Spain', 'Hong Kong', 'Italy', 'Singapore', 'Finland',
+            'Belgium', 'Norway', 'Israel', 'Ireland', 'New Zealand', 'Austria',
+            'Portugal', 'Eurozone', 'China', 'Taiwan', 'India', 'Korea',
+            'Brazil', 'Saudi Arabia', 'South Africa', 'Mexico', 'Thailand',
+            'Indonesia', 'Malaysia', 'United Arab Emirates', 'Qatar', 'Kuwait',
+            'Turkiye', 'Philippines', 'Poland', 'Chile', 'Greece', 'Peru',
+            'Hungary', 'Czechia', 'Egypt', 'Colombia', 'Argentina', 'Russia']
+
         if linux:
             self._tmp_folder = '/tmp/{}'.format(uuid.uuid4())
             if not os.path.exists(self._tmp_folder):
@@ -150,21 +161,12 @@ class InvestingWebScrapper:
         return countries
 
     def filter_countries(self, df):
-        all_countries = ['United States', 'Japan', 'United Kingdom', 'Canada',
-                         'France', 'Switzerland', 'Germany', 'Australia',
-                         'Netherlands', 'Denmark', 'Sweden', 'Spain',
-                         'Hong Kong', 'Italy', 'Singapore', 'Finland',
-                         'Belgium', 'Norway', 'Israel', 'Ireland',
-                         'New Zealand', 'Austria', 'Portugal', 'Euro Zone',
-                         'China', 'Taiwan', 'India', 'South Korea', 'Brazil',
-                         'Saudi Arabia', 'South Africa', 'Mexico', 'Thailand',
-                         'Indonesia',   'Malaysia', 'United Arab Emirates',
-                         'Qatar', 'Kuwait', 'Türkiye',  'Philippines',
-                         'Poland', 'Chile', 'Greece', 'Peru', 'Hungary',
-                         'Czech Republic', 'Egypt', 'Colombia',
-                         'Argentina', 'Russia']
+        df.loc[df['Country'] == 'Euro Zone', 'Country'] = 'Eurozone'
+        df.loc[df['Country'] == 'South Korea', 'Country'] = 'Korea'
+        df.loc[df['Country'] == 'Türkiye', 'Country'] = 'Turkiye'
+        df.loc[df['Country'] == 'Czech Republic', 'Country'] = 'Czechia'
 
-        df_to_save = df[df['Country'].isin(all_countries)]
+        df_to_save = df[df['Country'].isin(self.all_countries)]
         return df_to_save
 
     def close_browser(self):
