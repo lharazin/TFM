@@ -14,9 +14,9 @@ def handler(event, context):
     if (len(df) > 0):
         print('Read', len(df), 'indicators from',
               df.iloc[0, 0], 'to', df.iloc[-1, 0])
+        sql_handler.insert_into_table(df)
     else:
         print('No events found')
     print(df)
-    sql_handler.insert_into_table(df)
 
     return 'Success'
