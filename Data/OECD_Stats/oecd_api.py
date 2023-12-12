@@ -4,6 +4,7 @@ import requests
 import urllib3
 import ssl
 import io
+from SqlAlquemyInsertIndicatorsHandler import SqlAlquemyInsertIndicatorsHandler
 
 import warnings
 warnings.simplefilter("ignore", UserWarning)
@@ -37,6 +38,77 @@ selected_countries = [
     'Austria', 'China', 'Taiwan', 'India', 'Korea', 'Brazil',
     'Saudi Arabia', 'South Africa', 'Mexico', 'Indonesia',
     'Turkiye',  'Poland', 'Argentina', 'Russia']
+
+
+countries = ('AUS+AUT+BEL+CAN+CHL+COL+CZE+DNK+FIN+FRA+DEU+GRC+HUN+IRL+'
+             'ISR+ITA+JPN+KOR+MEX+NLD+NZL+NOR+POL+PRT+ESP+SWE+CHE+TUR+'
+             'GBR+USA+ARG+BRA+CHN+IND+IDN+RUS+SAU+ZAF+EA19')
+
+
+def get_oecd_data(indicator, subject, measure, freq, file_name,
+                  countries_before_subject=False, with_measure=True,
+                  filter_measure_on_df=False, with_freq=True,
+                  only_save_to_database=False):
+    if freq == 'Q':
+        startTime = '2023-Q1' if only_save_to_database else '1999-Q1'
+    else:
+        startTime = '2023-01' if only_save_to_database else '1999-01'
+
+    if countries_before_subject:
+        countries_and_subject = f'{countries}.{subject}'
+    else:
+        countries_and_subject = f'{subject}.{countries}'
+
+    base_url = f'https://stats.oecd.org/SDMX-JSON/data/{indicator}/'
+    params = f'all?startTime={startTime}&contentType=csv'
+    if with_measure:
+        url = f'{base_url}{countries_and_subject}.{measure}.{freq}/{params}'
+    elif with_freq:
+        url = f'{base_url}{countries_and_subject}.{freq}/{params}'
+    else:
+        url = f'{base_url}/{countries_and_subject}/{params}'
+
+    if not only_save_to_database:
+        print(url)
+
+    res = get_legacy_session().get(url)
+    df = pd.read_csv(io.BytesIO(res.content), sep=',')
+
+    if filter_measure_on_df:
+        df = df[df['MEASURE'] == measure]
+
+    df.index = df['TIME']
+
+    df_formatted = format_oecd_data(df)
+    df_formatted = df_formatted.sort_index()
+    df_formatted = df_formatted.round(4)
+
+    if only_save_to_database:
+        save_to_database(file_name, df_formatted)
+    else:
+        check_data_coverage(df_formatted)
+        df_formatted.to_csv(f'Indicators/OECD_{file_name}.csv')
+        return df_formatted
+
+
+class CustomHttpAdapter (requests.adapters.HTTPAdapter):
+    # "Transport adapter" that allows us to use custom ssl_context.
+    def __init__(self, ssl_context=None, **kwargs):
+        self.ssl_context = ssl_context
+        super().__init__(**kwargs)
+
+    def init_poolmanager(self, connections, maxsize, block=False):
+        self.poolmanager = urllib3.poolmanager.PoolManager(
+            num_pools=connections, maxsize=maxsize,
+            block=block, ssl_context=self.ssl_context)
+
+
+def get_legacy_session():
+    ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+    ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
+    session = requests.session()
+    session.mount('https://', CustomHttpAdapter(ctx))
+    return session
 
 
 def format_oecd_data(df):
@@ -104,66 +176,22 @@ def check_data_coverage(df):
     print('Done')
 
 
-class CustomHttpAdapter (requests.adapters.HTTPAdapter):
-    # "Transport adapter" that allows us to use custom ssl_context.
+def save_to_database(file_name, df):
+    sql_handler = SqlAlquemyInsertIndicatorsHandler()
+    indicator_id = sql_handler.get_indicator_id(file_name, 'OECD')
 
-    def __init__(self, ssl_context=None, **kwargs):
-        self.ssl_context = ssl_context
-        super().__init__(**kwargs)
+    recent_count = sql_handler.get_indicator_count(indicator_id, year=2023)
+    downloaded_count = (~df.isna()).sum().sum()
+    if recent_count == downloaded_count:
+        print(f'{file_name}: Nothing new to save')
+        return
 
-    def init_poolmanager(self, connections, maxsize, block=False):
-        self.poolmanager = urllib3.poolmanager.PoolManager(
-            num_pools=connections, maxsize=maxsize,
-            block=block, ssl_context=self.ssl_context)
+    sql_handler.delete_all_records(indicator_id, year=2023)
+    initial_count = sql_handler.get_indicator_count(indicator_id)
+    for country in df.columns:
+        values = df[country].dropna()
+        if (len(values) > 0):
+            sql_handler.insert_into_table(indicator_id, country, values)
 
-
-def get_legacy_session():
-    ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-    ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
-    session = requests.session()
-    session.mount('https://', CustomHttpAdapter(ctx))
-    return session
-
-
-countries = ('AUS+AUT+BEL+CAN+CHL+COL+CZE+DNK+FIN+FRA+DEU+GRC+HUN+IRL+'
-             'ISR+ITA+JPN+KOR+MEX+NLD+NZL+NOR+POL+PRT+ESP+SWE+CHE+TUR+'
-             'GBR+USA+ARG+BRA+CHN+IND+IDN+RUS+SAU+ZAF+EA19')
-
-
-def get_oecd_data(indicator, subject, measure, freq, file_name,
-                  countries_before_subject=False, with_measure=True,
-                  filter_measure_on_df=False, with_freq=True):
-    if freq == 'Q':
-        startTime = '1999-Q1'
-    else:
-        startTime = '1999-01'
-
-    if countries_before_subject:
-        countries_and_subject = f'{countries}.{subject}'
-    else:
-        countries_and_subject = f'{subject}.{countries}'
-
-    base_url = f'https://stats.oecd.org/SDMX-JSON/data/{indicator}/'
-    params = f'all?startTime={startTime}&contentType=csv'
-    if with_measure:
-        url = f'{base_url}{countries_and_subject}.{measure}.{freq}/{params}'
-    elif with_freq:
-        url = f'{base_url}{countries_and_subject}.{freq}/{params}'
-    else:
-        url = f'{base_url}/{countries_and_subject}/{params}'
-
-    print(url)
-    res = get_legacy_session().get(url)
-    df = pd.read_csv(io.BytesIO(res.content), sep=',')
-
-    if filter_measure_on_df:
-        df = df[df['MEASURE'] == measure]
-
-    df.index = df['TIME']
-
-    df_formatted = format_oecd_data(df)
-    df_formatted = df_formatted.sort_index()
-    df_formatted = df_formatted.round(4)
-    check_data_coverage(df_formatted)
-    df_formatted.to_csv(f'Indicators/OECD_{file_name}.csv')
-    return df_formatted
+    final_count = sql_handler.get_indicator_count(indicator_id)
+    print(f'{file_name}: Inserted', (final_count-initial_count), 'records')
