@@ -87,7 +87,7 @@ def get_oecd_data(indicator, subject, measure, freq, file_name,
         save_to_database(file_name, df_formatted)
     else:
         check_data_coverage(df_formatted)
-        df_formatted.to_csv(f'Indicators/OECD_{file_name}.csv')
+        df_formatted.to_csv(file_name)
         return df_formatted
 
 

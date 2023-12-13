@@ -22,3 +22,8 @@ Data/Investing_EconomicCalendar/terraform/.terraform/providers/registry.terrafor
 Data/Investing_EconomicCalendar/terraform/terraform.tfstate.backup
 __pycache__/
 Data/Investing_EconomicCalendar/investing_economic_calendar_2023-12-07.csv
+Data/OECD_Stats/terraform/lambda_oecd_download/terraform.tfstate
+Data/OECD_Stats/terraform/lambda_oecd_download/terraform.tfstate.backup
+Data/OECD_Stats/terraform/lambda_oecd_download/.terraform/providers/registry.terraform.io/hashicorp/aws/4.67.0/windows_amd64/terraform-provider-aws_v4.67.0_x5.exe
+Data/OECD_Stats/terraform/lambda_oecd_download/.terraform.lock.hcl
+Data/OECD_Stats/terraform.exe
