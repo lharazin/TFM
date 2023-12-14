@@ -27,3 +27,4 @@ Data/OECD_Stats/terraform/lambda_oecd_download/terraform.tfstate.backup
 Data/OECD_Stats/terraform/lambda_oecd_download/.terraform/providers/registry.terraform.io/hashicorp/aws/4.67.0/windows_amd64/terraform-provider-aws_v4.67.0_x5.exe
 Data/OECD_Stats/terraform/lambda_oecd_download/.terraform.lock.hcl
 Data/OECD_Stats/terraform.exe
+Data/WorldBankData_Stats/.env
