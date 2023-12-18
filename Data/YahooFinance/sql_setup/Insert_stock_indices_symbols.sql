@@ -36,3 +36,13 @@ VALUES ('^GSPC', 'Stock Index', 'United States', 'Yahoo'),
 	('GD.AT', 'Stock Index', 'Greece', 'Yahoo'),
 	('^MERV', 'Stock Index', 'Argentina', 'Yahoo'),
 	('IMOEX.ME', 'Stock Index', 'Russia', 'Yahoo')
+
+INSERT INTO [dbo].[MarketSymbols] ([Code], [Category], [Country], [Source])
+VALUES ('OMXC20', 'Stock Index', 'Denmark', 'Investing'),
+	('OBX', 'Stock Index', 'Norway', 'Investing'),
+	('JTOPI', 'Stock Index', 'South Africa', 'Investing'),
+	('WIG20', 'Stock Index', 'Poland', 'Investing'),
+	('SPIPSA', 'Stock Index', 'Chile', 'Investing'),
+	('FTWIHUNL', 'Stock Index', 'Hungary', 'Investing'),
+	('PX', 'Stock Index', 'Czechia', 'Investing'),
+	('FTWICOLL', 'Stock Index', 'Colombia', 'Investing')
