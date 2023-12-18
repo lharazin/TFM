@@ -28,3 +28,4 @@ Data/OECD_Stats/terraform.exe
 Data/WorldBankData_Stats/.env
 Data/BIS_CentralBankRates/.env
 Data/YahooFinance/.env
+Data/OECD_Stats/.env
