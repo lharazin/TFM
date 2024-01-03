@@ -1,5 +1,6 @@
 import sqlalchemy as sal
 import os
+import pandas as pd
 
 
 class SqlAlquemyInsertMarketDataHandler:
@@ -17,6 +18,25 @@ class SqlAlquemyInsertMarketDataHandler:
             for row in result:
                 code = row[0]
         return code
+
+    def read_max_dates_by_symbols(self, source):
+        records = []
+
+        with self.engine.connect() as connection:
+            result = connection.execute(sal.text(f"""
+                SELECT [SymbolCode], MAX([Date]) AS MaxDate
+                FROM [dbo].[MarketData] AS D
+                    INNER JOIN [dbo].[MarketSymbols] AS S
+                        ON D.[SymbolCode] = S.[Code]
+                WHERE S.[Source] = '{source}'
+                GROUP BY [SymbolCode]
+            """))
+            for row in result:
+                records.append(row)
+
+        df = pd.DataFrame(records)
+        print(len(df), 'indicators read')
+        return df
 
     def save_to_db(self, symbol_code, values):
         initial_count = self.get_indicator_count(symbol_code)
