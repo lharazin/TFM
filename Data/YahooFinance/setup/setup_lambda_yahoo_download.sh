@@ -3,6 +3,8 @@ aws configure
 aws ecr get-login-password | docker login --username AWS --password-stdin \
     669885634214.dkr.ecr.eu-central-1.amazonaws.com
 
+lambda_yahoo_download
+
 aws ecr create-repository --repository-name lambda_yahoo_download --region eu-central-1
 
 docker build -t lambda_yahoo_download \

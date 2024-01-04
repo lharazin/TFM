@@ -33,3 +33,7 @@ Data/YahooFinance/terraform.exe
 Data/YahooFinance/terraform/lambda_yahoo_download/.terraform.lock.hcl
 Data/YahooFinance/terraform/lambda_yahoo_download/terraform.tfstate
 Data/YahooFinance/terraform/lambda_yahoo_download/.terraform/providers/registry.terraform.io/hashicorp/aws/4.67.0/windows_amd64/terraform-provider-aws_v4.67.0_x5.exe
+Data/YahooFinance/terraform/lambda_investing_indices_web_scrapping/.terraform.lock.hcl
+Data/YahooFinance/terraform/lambda_investing_indices_web_scrapping/terraform.tfstate
+Data/YahooFinance/terraform/lambda_investing_indices_web_scrapping/terraform.tfstate.backup
+Data/YahooFinance/terraform/lambda_investing_indices_web_scrapping/.terraform/providers/registry.terraform.io/hashicorp/aws/4.67.0/windows_amd64/terraform-provider-aws_v4.67.0_x5.exe
