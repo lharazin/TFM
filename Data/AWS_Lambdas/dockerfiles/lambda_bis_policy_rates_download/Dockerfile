@@ -1,12 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.11 as stage
-
-# Hack to install chromium dependencies
-RUN yum install -y -q sudo unzip
-# Install Chromium
-COPY setup/install-browser.sh /tmp/
-RUN /usr/bin/bash /tmp/install-browser.sh
-
-FROM public.ecr.aws/lambda/python:3.11 as base
+FROM public.ecr.aws/lambda/python:3.11
 
 # Install ODBC Driver to access SQL database
 RUN yum update -y \
@@ -20,13 +12,8 @@ RUN yum update -y \
     && yum install -y gcc-c++ \
     && yum clean all
 
-COPY setup/chrome-deps.txt /tmp/
-RUN yum install -y $(cat /tmp/chrome-deps.txt)
-COPY --from=stage /opt/chrome /opt/chrome
-COPY --from=stage /opt/chromedriver /opt/chromedriver
-
 # Copy function code 
-COPY ./src/lambda_economic_calendar/ ${LAMBDA_TASK_ROOT} 
+COPY ./src/lambda_bis_policy_rates_download/ ${LAMBDA_TASK_ROOT} 
 
 # Install the function's dependencies using file requirements.txt
 RUN  pip3 install -r ${LAMBDA_TASK_ROOT}/requirements.txt --target "${LAMBDA_TASK_ROOT}" 

@@ -10,8 +10,8 @@ variable "db_password" {
   default     = "pass"
 }
 
-resource "aws_iam_role" "lambda_execution_oecd" {
-  name = "lambda_execution_oecd"
+resource "aws_iam_role" "lambda_execution_role_bis" {
+  name = "lambda_execution_role_bis"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -28,12 +28,12 @@ resource "aws_iam_role" "lambda_execution_oecd" {
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_rds_policy" {
-  role       = aws_iam_role.lambda_execution_oecd.name
+  role       = aws_iam_role.lambda_execution_role_bis.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonRDSDataFullAccess"
 }
 
-resource "aws_iam_policy" "lambda_execution_policy_oecd" {
-  name        = "LambdaExecutionPolicyOecd"
+resource "aws_iam_policy" "lambda_execution_policy_bis" {
+  name        = "LambdaExecutionPolicyBisPolicyRates"
   description = "Policy for Lambda execution role"
 
   policy = jsonencode({
@@ -59,17 +59,17 @@ resource "aws_iam_policy" "lambda_execution_policy_oecd" {
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_execution_role_policy_attachment" {
-  policy_arn = aws_iam_policy.lambda_execution_policy_oecd.arn
-  role       = aws_iam_role.lambda_execution_oecd.name
+  policy_arn = aws_iam_policy.lambda_execution_policy_bis.arn
+  role       = aws_iam_role.lambda_execution_role_bis.name
 }
 
 resource "aws_lambda_function" "executable" {
-  function_name = "lambda_oecd_download"
-  image_uri     = "669885634214.dkr.ecr.eu-central-1.amazonaws.com/lambda_oecd_download:latest"
+  function_name = "lambda_bis_policy_rates_download"
+  image_uri     = "669885634214.dkr.ecr.eu-central-1.amazonaws.com/lambda_bis_policy_rates_download:latest"
   package_type  = "Image"
-  role          = aws_iam_role.lambda_execution_oecd.arn
-  memory_size   = 256
-  timeout       = 900
+  role          = aws_iam_role.lambda_execution_role_bis.arn
+  memory_size   = 1024
+  timeout       = 300
   environment {
     variables = {
       AWS_DB_SERVER_ADDRESS = var.db_server_address
@@ -80,8 +80,8 @@ resource "aws_lambda_function" "executable" {
 }
 
 resource "aws_cloudwatch_event_rule" "schedule" {
-    name = "triger_oecd"
-    description = "Schedule for every working day at 8"
+    name = "triger_bis_policy_rates"
+    description = "Schedule for Monday at 8"
     schedule_expression = "cron(0 8 ? * MON *)"
 }
 

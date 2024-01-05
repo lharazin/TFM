@@ -1,0 +1,6 @@
+pandas
+sqlalchemy
+pyodbc
+requests
+urllib3
+xmltodict
