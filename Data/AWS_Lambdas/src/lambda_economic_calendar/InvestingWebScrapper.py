@@ -57,7 +57,7 @@ class InvestingWebScrapper:
                                            options=chrome_options)
 
         else:
-            service = Service(executable_path='../chromedriver.exe')
+            service = Service(executable_path='../../../chromedriver.exe')
             options = webdriver.ChromeOptions()
             self.driver = webdriver.Chrome(service=service, options=options)
 

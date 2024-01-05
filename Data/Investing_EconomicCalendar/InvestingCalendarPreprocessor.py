@@ -1,4 +1,4 @@
-from src.preprocessing.SqlAlquemySelectHandler import SqlAlquemySelectHandler
+from SqlAlquemySelectHandler import SqlAlquemySelectHandler
 import pandas as pd
 
 from dotenv import load_dotenv
