@@ -1,0 +1,6 @@
+pandas
+sqlalchemy
+pyodbc
+wbgapi
+tabulate
+PyYAML
