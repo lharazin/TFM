@@ -48,7 +48,6 @@ class InvestingCalendarPreprocessor:
             'Unicredit Bank Austria ',
             'Nikkei ',
             'AIB Ireland ',
-            'Caixin ',
             'Russian S&P Global ',
             'Poland ',
             'HCOB Spain ',
@@ -159,10 +158,10 @@ class InvestingCalendarPreprocessor:
 
         # correct period when logged at the beginning of the month
         prev_periods = pd.PeriodIndex(df_processed[
-            df_processed['ReportDateTime'].dt.day < 15]['ReportDateTime'],
+            df_processed['ReportDateTime'].dt.day < 11]['ReportDateTime'],
             freq='M')-1
         df_processed.loc[df_processed['ReportDateTime'].dt.day <
-                         15, 'Period'] = prev_periods.to_timestamp()
+                         11, 'Period'] = prev_periods.to_timestamp()
 
         df_processed['Value'] = df['Actual'].astype(float)
         df_processed = df_processed[df_processed['Indicator'] == indicator]
@@ -204,7 +203,7 @@ class InvestingCalendarPreprocessor:
         df_countries = pd.DataFrame(index=period, columns=self.all_countries)
         for country in self.all_countries:
             values = df_processed[df_processed['Country'] == country]['Value']
-            values = values[~values.index.duplicated(keep='first')]
+            values = values[~values.index.duplicated(keep='last')]
             df_countries.loc[:, country] = values
 
         return df_countries
