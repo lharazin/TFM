@@ -129,15 +129,15 @@ class InvestingCalendarPreprocessor:
         sql_handler = SqlAlquemySelectHandler()
         df = sql_handler.read_indicator(indicator, alt_indicator)
         df_processed = df.loc[:, ['ReportDateTime', 'Country', 'Indicator']]
+        df_processed.loc[:, 'FullName'] = df['Indicator']
+        self.assign_period(df_processed, freq='Q')
+
+        df_processed['Value'] = df['Actual'].str.rstrip('%').astype(float)
 
         prefixes = self.standard_prefixes
-        suffixes = self.quarterly_suffixes
+        suffixes = self.monthly_suffixes + self.quarterly_suffixes
         self.clean_indicators(df_processed, prefixes, suffixes,
                               indicator, alt_indicator)
-
-        periods = pd.PeriodIndex(df_processed['ReportDateTime'], freq='Q')-1
-        df_processed['Period'] = periods.to_timestamp()
-        df_processed['Value'] = df['Actual'].str.rstrip('%').astype(float)
         df_processed = df_processed[df_processed['Indicator'] == indicator]
 
         self.print_summary(df_processed, freq='Q')
@@ -147,11 +147,7 @@ class InvestingCalendarPreprocessor:
         sql_handler = SqlAlquemySelectHandler()
         df = sql_handler.read_indicator(indicator, alt_indicator)
         df_processed = df.loc[:, ['ReportDateTime', 'Country', 'Indicator']]
-
-        prefixes = self.pmi_prefixes
-        suffixes = self.monthly_suffixes + [' (MoM)']
-        self.clean_indicators(df_processed, prefixes, suffixes,
-                              indicator, alt_indicator)
+        df_processed.loc[:, 'FullName'] = df['Indicator']
 
         periods = pd.PeriodIndex(df_processed['ReportDateTime'], freq='M')
         df_processed['Period'] = periods.to_timestamp()
@@ -164,6 +160,11 @@ class InvestingCalendarPreprocessor:
                          11, 'Period'] = prev_periods.to_timestamp()
 
         df_processed['Value'] = df['Actual'].astype(float)
+
+        prefixes = self.pmi_prefixes
+        suffixes = self.monthly_suffixes + [' (MoM)']
+        self.clean_indicators(df_processed, prefixes, suffixes,
+                              indicator, alt_indicator)
         df_processed = df_processed[df_processed['Indicator'] == indicator]
 
         self.print_summary(df_processed, freq='M')
@@ -174,32 +175,79 @@ class InvestingCalendarPreprocessor:
         sql_handler = SqlAlquemySelectHandler()
         df = sql_handler.read_indicator(indicator, alt_indicator)
         df_processed = df.loc[:, ['ReportDateTime', 'Country', 'Indicator']]
+        df_processed.loc[:, 'FullName'] = df['Indicator']
+        self.assign_period(df_processed, freq='M')
+
+        if pct_value:
+            df_processed.loc[:, 'Value'] = df['Actual'].str.rstrip(
+                '%').str.replace(',', '').astype(float)
+        else:
+            df_processed.loc[:, 'Value'] = df['Actual'].str.replace(
+                ',', '').apply(self.money_to_int)
 
         prefixes = self.standard_prefixes
         suffixes = self.monthly_suffixes + self.quarterly_suffixes + [' s.a.']
         self.clean_indicators(df_processed, prefixes, suffixes,
                               indicator, alt_indicator)
-
-        periods = pd.PeriodIndex(df_processed['ReportDateTime'], freq='M')-1
-        df_processed['Period'] = periods.to_timestamp()
-
-        if pct_value:
-            df_processed['Value'] = df['Actual'].str.rstrip('%').str.replace(
-                ',', '').astype(float)
-        else:
-            df_processed['Value'] = df['Actual'].str.replace(',', '').apply(
-                self.money_to_int)
-
         df_processed = df_processed[df_processed['Indicator'] == indicator]
 
         self.print_summary(df_processed, freq='M')
         return df_processed
 
+    def assign_period(self, df_processed, freq):
+        df_processed.loc[:, 'Period'] = None
+        for ind, row in df_processed.iterrows():
+            indicator = row['Indicator']
+            report_date_time = row['ReportDateTime']
+            if indicator.endswith(tuple(self.monthly_suffixes)):
+                month = indicator[-4:-1]
+                if (month == 'Dec' and report_date_time.month == 1):
+                    df_processed.loc[ind, 'Period'] = pd.to_datetime(
+                        month + '-' + str(report_date_time.year-1))
+                else:
+                    df_processed.loc[ind, 'Period'] = pd.to_datetime(
+                        month + '-' + str(report_date_time.year))
+            elif indicator.endswith(tuple(self.quarterly_suffixes)):
+                quarter = indicator[-3:-1]
+                if quarter == 'Q1':
+                    df_processed.loc[ind, 'Period'] = pd.to_datetime(
+                        '01-' + str(report_date_time.year))
+                elif quarter == 'Q2':
+                    df_processed.loc[ind, 'Period'] = pd.to_datetime(
+                        '04-' + str(report_date_time.year))
+                elif quarter == 'Q3' and report_date_time.month < 7:
+                    df_processed.loc[ind, 'Period'] = pd.to_datetime(
+                        '07-' + str(report_date_time.year-1))
+                elif quarter == 'Q3':
+                    df_processed.loc[ind, 'Period'] = pd.to_datetime(
+                        '07-' + str(report_date_time.year))
+                elif quarter == 'Q4' and report_date_time.month < 7:
+                    df_processed.loc[ind, 'Period'] = pd.to_datetime(
+                        '10-' + str(report_date_time.year-1))
+                else:
+                    df_processed.loc[ind, 'Period'] = pd.to_datetime(
+                        '10-' + str(report_date_time.year))
+            elif freq == 'M':
+                if report_date_time.day >= 25:
+                    df_processed.loc[ind, 'Period'] = pd.to_datetime(
+                        str(report_date_time.month) + '-' + str(
+                            report_date_time.year))
+                elif report_date_time.month == 1:
+                    df_processed.loc[ind, 'Period'] = pd.to_datetime(
+                        '12-' + str(report_date_time.year-1))
+                else:
+                    df_processed.loc[ind, 'Period'] = pd.to_datetime(
+                        str(report_date_time.month-1) + '-' + str(
+                            report_date_time.year))
+            else:
+                df_processed.loc[ind, 'Period'] = (pd.Period(
+                    report_date_time, freq='Q')-1).to_timestamp()
+
     def transform_to_countries_df(self, df_processed, freq):
         period = pd.period_range('1999-01-01', '2023-12-31', freq=freq)
         period = period.to_timestamp()
 
-        df_processed.index = df_processed['Period']
+        df_processed.index = pd.DatetimeIndex(df_processed['Period'])
         df_countries = pd.DataFrame(index=period, columns=self.all_countries)
         for country in self.all_countries:
             values = df_processed[df_processed['Country'] == country]['Value']
@@ -245,8 +293,8 @@ class InvestingCalendarPreprocessor:
         print('Missing countries')
         print(missing_countries)
 
-        print('Avg publish delay: ', (df_processed['ReportDateTime'] -
-                                      df_processed['Period']).mean())
+        # print('Avg publish delay: ', (df_processed['ReportDateTime'] -
+        #                               df_processed['Period']).mean())
 
         df_countries = self.transform_to_countries_df(
             df_processed, freq=freq)
