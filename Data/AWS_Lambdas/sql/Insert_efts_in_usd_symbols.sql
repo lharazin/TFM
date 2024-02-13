@@ -16,13 +16,13 @@ VALUES ('SPY', 'SPDR S&P 500 ETF Trust (SPY)', 'ETF in USD', 'United States', 'Y
 	('EWS', 'iShares MSCI Singapore ETF', 'ETF in USD', 'Singapore', 'Yahoo'),
 	('EFNL', 'iShares MSCI Finland ETF', 'ETF in USD', 'Finland', 'Yahoo'),
 	('EWK', 'iShares MSCI Belgium ETF', 'ETF in USD', 'Belgium', 'Yahoo'),
-	('NORW', 'Global X MSCI Norway ETF', 'ETF in USD', 'Norway', 'Yahoo'),
+	('ENOR', 'iShares MSCI Norway ETF', 'ETF in USD', 'Norway', 'Yahoo'),
 	('EIS', 'iShares MSCI Israel ETF', 'ETF in USD', 'Israel', 'Yahoo'),
 	('EIRL', 'iShares MSCI Ireland ETF', 'ETF in USD', 'Ireland', 'Yahoo'),
 	('ENZL', 'iShares MSCI New Zealand ETF', 'ETF in USD', 'New Zealand', 'Yahoo'),
 	('EWO', 'iShares MSCI Austria ETF', 'ETF in USD', 'Austria', 'Yahoo'),
 	('PGAL', 'Global X MSCI Portugal ETF', 'ETF in USD', 'Portugal', 'Yahoo'),
-	('FEZ', 'SPDR EURO STOXX 50 ETF ', 'ETF in USD', 'Eurozona', 'Yahoo'),
+	('FEZ', 'SPDRï¿½EURO STOXX 50ï¿½ETFï¿½', 'ETF in USD', 'Eurozona', 'Yahoo'),
 	('MCHI', 'iShares MSCI China ETF', 'ETF in USD', 'China', 'Yahoo'),
 	('EWT', 'iShares MSCI Taiwan ETF', 'ETF in USD', 'Taiwan', 'Yahoo'),
 	('INDA', 'iShares MSCI India ETF', 'ETF in USD', 'India', 'Yahoo'),
@@ -46,4 +46,5 @@ VALUES ('SPY', 'SPDR S&P 500 ETF Trust (SPY)', 'ETF in USD', 'United States', 'Y
 	('EGPT', 'VanEck Egypt Index ETF', 'ETF in USD', 'Egypt', 'Yahoo'),
 	('GXG', 'Global X MSCI Colombia ETF', 'ETF in USD', 'Colombia', 'Yahoo'),
 	('ARGT', 'Global X MSCI Argentina ETF', 'ETF in USD', 'Argentina', 'Yahoo'),
-	('ERUS', 'iShares MSCI Russia ETF', 'ETF in USD', 'Russia', 'Yahoo')
+	('ERUS', 'iShares MSCI Russia ETF', 'ETF in USD', 'Russia', 'Yahoo'),
+	('ACWI', 'iShares MSCI ACWI ETF', 'ETF in USD', 'ACWI', 'Yahoo')
