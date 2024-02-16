@@ -24,8 +24,9 @@ class SqlAlquemySelectMarketDataHandler:
                 records.append(row)
 
         df = pd.DataFrame(records)
-        print(len(df), 'market symbols read')
-        return df
+        df.index = df['Country']
+        df.index.name = None
+        return df.loc[:, ['Code', 'Description']]
 
     def read_market_data(self, symbol):
         records = []
@@ -42,8 +43,9 @@ class SqlAlquemySelectMarketDataHandler:
 
         df = pd.DataFrame(records)
         df.index = pd.to_datetime(df['Date'])
+        df.index.name = None
         print(len(df), 'market data read')
-        return df
+        return df['Value'].astype(float)
 
     def __get_sql_alquemy_engine(self):
         db_server_address = os.environ.get("AWS_DB_SERVER_ADDRESS")

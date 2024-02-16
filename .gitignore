@@ -18,3 +18,5 @@ Data/IronIA_IndexFunds/harazinlt.json
 Data/~$Cataloged_Indicators.xlsx
 Data/Investing_EconomicCalendar/investing_economic_calendar_2024-01-05.csv
 Data/MSCI/msci_indexes.csv
+Algorithm/cached_benchmark.csv
+Algorithm/cached_df_countries.csv
