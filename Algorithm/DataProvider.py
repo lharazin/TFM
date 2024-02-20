@@ -1,5 +1,5 @@
 import pandas as pd
-from SqlAlquemySelectMarketDataHandler import SqlAlquemySelectMarketDataHandler
+from SqlAlquemySelectDataHandler import SqlAlquemySelectDataHandler
 
 
 class DataProvider:
@@ -17,7 +17,7 @@ class DataProvider:
         self.benchmark = 'ACWI'
 
     def get_etf_data(self):
-        sql_handler = SqlAlquemySelectMarketDataHandler()
+        sql_handler = SqlAlquemySelectDataHandler()
         etfs_in_usd = sql_handler.read_market_symbols('ETF in USD')
         syn_etfs_in_usd = sql_handler.read_market_symbols(
             'Synthetic ETF in USD')
@@ -45,3 +45,23 @@ class DataProvider:
         benchmark = df_etfs['ACWI']
 
         return df_countries, benchmark
+
+    def get_acwi_weights(self):
+        sql_handler = SqlAlquemySelectDataHandler()
+        acwi_weights_indicator_id = sql_handler.get_indicator_id(
+            'MSCI ACWI Weights', 'MSCI')
+
+        indicator_values = sql_handler.get_indicator_count(
+            acwi_weights_indicator_id)
+        indicator_values.index = indicator_values['Period']
+
+        df_weights = pd.DataFrame(columns=self.selected_countries,
+                                  index=pd.date_range('1999', '2024',
+                                                      freq='YS'))
+
+        for country in df_weights.columns:
+            df_weights.loc[:, country] = indicator_values[
+                indicator_values['Country'] == country]['Value']
+
+        df_weights = df_weights.astype(float).round(2)
+        return df_weights
