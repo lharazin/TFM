@@ -47,21 +47,23 @@ class DataProvider:
         return df_countries, benchmark
 
     def get_acwi_weights(self):
-        sql_handler = SqlAlquemySelectDataHandler()
-        acwi_weights_indicator_id = sql_handler.get_indicator_id(
-            'MSCI ACWI Weights', 'MSCI')
+        df_weights = self.source('MSCI ACWI Weights', 'MSCI', 'YS')
+        return df_weights
 
-        indicator_values = sql_handler.get_indicator_count(
-            acwi_weights_indicator_id)
+    def get_indicator_values(self, indicator, source, freq):
+        sql_handler = SqlAlquemySelectDataHandler()
+        indicator_id = sql_handler.get_indicator_id(indicator, source)
+
+        indicator_values = sql_handler.get_indicator_count(indicator_id)
         indicator_values.index = indicator_values['Period']
 
-        df_weights = pd.DataFrame(columns=self.selected_countries,
-                                  index=pd.date_range('1999', '2024',
-                                                      freq='YS'))
+        df_countries = pd.DataFrame(
+            columns=self.selected_countries,
+            index=pd.date_range('1999', '2023-12-31', freq=freq))
 
-        for country in df_weights.columns:
-            df_weights.loc[:, country] = indicator_values[
+        for country in df_countries.columns:
+            df_countries.loc[:, country] = indicator_values[
                 indicator_values['Country'] == country]['Value']
 
-        df_weights = df_weights.astype(float).round(2)
-        return df_weights
+        df_countries = df_countries.astype(float).round(2)
+        return df_countries
