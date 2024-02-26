@@ -16,6 +16,17 @@ class DataProvider:
             'South Africa', 'Mexico', 'Malaysia']
         self.benchmark = 'ACWI'
 
+        self.key_indicators = [
+            'GDP Annual Growth Rate',
+            'GDP Growth Rate',
+            'Unemployment Rate',
+            'Inflation Rate',
+            'Inflation Rate MoM',
+            'Manufacturing PMI',
+            'Services PMI',
+            'OECD Bussiness Confidence Indicator'
+        ]
+
     def get_etf_data(self):
         sql_handler = SqlAlquemySelectDataHandler()
         etfs_in_usd = sql_handler.read_market_symbols('ETF in USD')
@@ -47,7 +58,8 @@ class DataProvider:
         return df_countries, benchmark
 
     def get_acwi_weights(self):
-        df_weights = self.source('MSCI ACWI Weights', 'MSCI', 'YS')
+        df_weights = self.get_indicator_values(
+            'MSCI ACWI Weights', 'MSCI', 'YS')
         return df_weights
 
     def get_indicator_values(self, indicator, source, freq):
@@ -67,3 +79,61 @@ class DataProvider:
 
         df_countries = df_countries.astype(float).round(2)
         return df_countries
+
+    def get_key_indicator_values(self, indicator):
+        if (indicator == 'GDP Annual Growth Rate' or
+                indicator == 'GDP Growth Rate'):
+            df_investing_indicator = self.get_indicator_values(
+                indicator, 'Investing', 'QS')
+            df_oecd_indicator = self.get_indicator_values(
+                indicator, 'OECD', 'QS')
+            df_combined = df_investing_indicator.combine_first(
+                df_oecd_indicator)
+            return df_combined
+
+        if (indicator == 'Unemployment Rate' or
+                indicator == 'Inflation Rate' or
+                indicator == 'Inflation Rate MoM'):
+            df_investing_indicator = self.get_indicator_values(
+                indicator, 'Investing', 'MS')
+            df_oecd_indicator = self.get_indicator_values(
+                indicator, 'OECD', 'MS')
+            df_combined = df_investing_indicator.combine_first(
+                df_oecd_indicator)
+            return df_combined
+
+        if (indicator == 'Manufacturing PMI' or indicator == 'Services PMI'):
+            df_investing_indicator = self.get_indicator_values(
+                indicator, 'Investing', 'MS')
+            return df_investing_indicator
+
+        if (indicator == 'OECD Bussiness Confidence Indicator'):
+            df_oecd_indicator = self.get_indicator_values(
+                indicator, 'OECD', 'MS')
+            return df_oecd_indicator
+
+    def get_latest_data(self, indicator, df, date, periods):
+        if (indicator == 'GDP Annual Growth Rate' or
+                indicator == 'GDP Growth Rate'):
+            date_minus_2_quarters = date - pd.DateOffset(months=6)
+            latest_known_period = pd.to_datetime(
+                (f'{date_minus_2_quarters.year}-'
+                 f'Q{date_minus_2_quarters.quarter}'))
+            return df[:latest_known_period].iloc[-periods:]
+
+        if (indicator == 'Unemployment Rate' or
+                indicator == 'Inflation Rate' or
+                indicator == 'Inflation Rate MoM' or
+                indicator == 'OECD Bussiness Confidence Indicator'):
+            date_minus_2_months = date - pd.DateOffset(months=2)
+            latest_known_period = pd.to_datetime(
+                f'{date_minus_2_months.year}-{date_minus_2_months.month}-1')
+            return df[:latest_known_period].iloc[-periods:]
+
+        if (indicator == 'Manufacturing PMI' or indicator == 'Services PMI'):
+            months = 1 if date.day >= 6 else 2
+            date_minus_1_or_2_month = date - pd.DateOffset(months=months)
+            latest_known_period = pd.to_datetime(
+                (f'{date_minus_1_or_2_month.year}-'
+                 f'{date_minus_1_or_2_month.month}-1'))
+            return df[:latest_known_period].iloc[-periods:]
