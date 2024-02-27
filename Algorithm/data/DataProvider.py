@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 from SqlAlquemySelectDataHandler import SqlAlquemySelectDataHandler
 
 
@@ -28,6 +29,18 @@ class DataProvider:
         ]
 
     def get_etf_data(self):
+        countries_file_path = 'cache/df_countries.csv'
+        benchmark_file_path = 'cache/benchmark.csv'
+
+        if (os.path.isfile(countries_file_path) and
+                os.path.isfile(benchmark_file_path)):
+            df_countries = pd.read_csv(
+                countries_file_path, index_col=0, parse_dates=True)
+            df_benchmark = pd.read_csv(
+                benchmark_file_path, index_col=0, parse_dates=True)
+            benchmark = df_benchmark.iloc[:, 0]
+            return df_countries, benchmark
+
         sql_handler = SqlAlquemySelectDataHandler()
         etfs_in_usd = sql_handler.read_market_symbols('ETF in USD')
         syn_etfs_in_usd = sql_handler.read_market_symbols(
@@ -55,11 +68,21 @@ class DataProvider:
         df_countries = df_etfs.drop(columns=['ACWI'])
         benchmark = df_etfs['ACWI']
 
+        df_countries.to_csv(countries_file_path)
+        benchmark.to_csv(benchmark_file_path)
+
         return df_countries, benchmark
 
     def get_acwi_weights(self):
+        acwi_weights_file_path = 'cache/acwi_weights.csv'
+        if os.path.isfile(acwi_weights_file_path):
+            df_weights = pd.read_csv(acwi_weights_file_path,
+                                     index_col=0, parse_dates=True)
+            return df_weights
+
         df_weights = self.get_indicator_values(
             'MSCI ACWI Weights', 'MSCI', 'YS')
+        df_weights.to_csv(acwi_weights_file_path)
         return df_weights
 
     def get_indicator_values(self, indicator, source, freq):
@@ -81,6 +104,12 @@ class DataProvider:
         return df_countries
 
     def get_key_indicator_values(self, indicator):
+        file_name = indicator.lower().replace(' ', '_')
+        file_path = f'cache/{file_name}.csv'
+        if os.path.isfile(file_path):
+            df_cache = pd.read_csv(file_path, index_col=0, parse_dates=True)
+            return df_cache
+
         if (indicator == 'GDP Annual Growth Rate' or
                 indicator == 'GDP Growth Rate'):
             df_investing_indicator = self.get_indicator_values(
@@ -89,6 +118,8 @@ class DataProvider:
                 indicator, 'OECD', 'QS')
             df_combined = df_investing_indicator.combine_first(
                 df_oecd_indicator)
+
+            df_combined.to_csv(file_path)
             return df_combined
 
         if (indicator == 'Unemployment Rate' or
@@ -100,16 +131,22 @@ class DataProvider:
                 indicator, 'OECD', 'MS')
             df_combined = df_investing_indicator.combine_first(
                 df_oecd_indicator)
+
+            df_combined.to_csv(file_path)
             return df_combined
 
         if (indicator == 'Manufacturing PMI' or indicator == 'Services PMI'):
             df_investing_indicator = self.get_indicator_values(
                 indicator, 'Investing', 'MS')
+
+            df_investing_indicator.to_csv(file_path)
             return df_investing_indicator
 
         if (indicator == 'OECD Bussiness Confidence Indicator'):
             df_oecd_indicator = self.get_indicator_values(
                 indicator, 'OECD', 'MS')
+
+            df_oecd_indicator.to_csv(file_path)
             return df_oecd_indicator
 
     def get_latest_data(self, indicator, df, date, periods):
