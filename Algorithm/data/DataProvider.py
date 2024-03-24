@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import os
 from SqlAlquemySelectDataHandler import SqlAlquemySelectDataHandler
 
@@ -24,7 +25,6 @@ class DataProvider:
             'Inflation Rate',
             'Inflation Rate MoM',
             'Manufacturing PMI',
-            'Services PMI',
             'OECD Bussiness Confidence Indicator'
         ]
 
@@ -118,6 +118,7 @@ class DataProvider:
                 indicator, 'OECD', 'QS')
             df_combined = df_investing_indicator.combine_first(
                 df_oecd_indicator)
+            df_combined = self.fill_missing_values(df_combined)
 
             df_combined.to_csv(file_path)
             return df_combined
@@ -131,14 +132,19 @@ class DataProvider:
                 indicator, 'OECD', 'MS')
             df_combined = df_investing_indicator.combine_first(
                 df_oecd_indicator)
+            df_combined = self.fill_missing_values(df_combined)
 
             df_combined.to_csv(file_path)
             return df_combined
 
-        if (indicator == 'Manufacturing PMI' or indicator == 'Services PMI'):
+        if (indicator == 'Manufacturing PMI'):
             df_investing_indicator = self.get_indicator_values(
                 indicator, 'Investing', 'MS')
 
+            df_investing_indicator = self.fill_manufacturing_pmi(
+                df_investing_indicator)
+            df_investing_indicator = self.fill_missing_values(
+                df_investing_indicator)
             df_investing_indicator.to_csv(file_path)
             return df_investing_indicator
 
@@ -156,7 +162,16 @@ class DataProvider:
             latest_known_period = pd.to_datetime(
                 (f'{date_minus_2_quarters.year}-'
                  f'Q{date_minus_2_quarters.quarter}'))
-            return df[:latest_known_period].iloc[-periods:]
+            df_latest = df[:latest_known_period].iloc[-int(periods/3):]
+
+            # Convert quarterly to monthly data
+            new_monthly_index = pd.date_range(df_latest.index[0],
+                                              df_latest.index[-1] +
+                                              pd.DateOffset(months=2),
+                                              freq='MS')
+            df_latest_monthly = pd.DataFrame(
+                df_latest, index=new_monthly_index)
+            return df_latest_monthly.ffill()
 
         if (indicator == 'Unemployment Rate' or
                 indicator == 'Inflation Rate' or
@@ -174,3 +189,50 @@ class DataProvider:
                 (f'{date_minus_1_or_2_month.year}-'
                  f'{date_minus_1_or_2_month.month}-1'))
             return df[:latest_known_period].iloc[-periods:]
+
+    def calculate_correlations_for_returns(self):
+        df_countries, _ = self.get_etf_data()
+        df_monthly_prices = df_countries.resample('MS').first()
+        df_returns = np.log(df_monthly_prices).diff().dropna()
+        corr = df_returns.corr()
+        return corr
+
+    def fill_missing_values(self, df):
+        corr = self.calculate_correlations_for_returns()
+
+        df = df.ffill(limit=3).bfill(limit=3)
+        countries_with_missing_data = df.columns[df.isna().sum() > 0]
+
+        for country in countries_with_missing_data:
+            most_correlated_countries = corr[country].sort_values()[
+                ::-1][1:].index
+            most_correlated_countries_with_data = most_correlated_countries[
+                ~most_correlated_countries.isin(
+                    countries_with_missing_data)][:5]
+
+            missing_dates = df[df[country].isna()].index
+            mean_values = df.loc[
+                missing_dates, most_correlated_countries_with_data].mean(
+                    axis=1).round(2)
+
+            df.loc[missing_dates, country] = mean_values
+
+        return df
+
+    def fill_manufacturing_pmi(self, df_manufacturing_pmi):
+        df_bussiness_confidence = self.get_key_indicator_values(
+            'OECD Bussiness Confidence Indicator')
+
+        countries_with_missing_data = df_manufacturing_pmi.columns[
+            df_manufacturing_pmi.isna().sum() > 0]
+
+        for country in countries_with_missing_data:
+            missing_dates = df_manufacturing_pmi[df_manufacturing_pmi[
+                country].isna()].index
+            values_from_bussines_confidence = df_bussiness_confidence.loc[
+                missing_dates, country] - 50
+
+            df_manufacturing_pmi.loc[
+                missing_dates, country] = values_from_bussines_confidence
+
+        return df_manufacturing_pmi
