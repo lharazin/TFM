@@ -81,6 +81,7 @@ class DataProvider:
 
         df_weights = self.get_indicator_values(
             'MSCI ACWI Weights', 'MSCI', 'YS')
+        df_weights.dropna(inplace=True)
         df_weights.to_csv(acwi_weights_file_path)
         return df_weights
 
