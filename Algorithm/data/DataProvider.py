@@ -24,8 +24,7 @@ class DataProvider:
             'Unemployment Rate',
             'Inflation Rate',
             'Inflation Rate MoM',
-            'Manufacturing PMI',
-            'OECD Bussiness Confidence Indicator'
+            'Manufacturing PMI'
         ]
 
     def get_etf_data(self):
@@ -92,16 +91,21 @@ class DataProvider:
         indicator_values = sql_handler.get_indicator_count(indicator_id)
         indicator_values.index = indicator_values['Period']
 
-        df_countries = pd.DataFrame(
+        df_indicator = pd.DataFrame(
             columns=self.selected_countries,
-            index=pd.date_range('1999', '2023-12-31', freq=freq))
+            index=pd.date_range('1999-01-01', '2023-12-31', freq='MS'))
 
-        for country in df_countries.columns:
-            df_countries.loc[:, country] = indicator_values[
+        for country in df_indicator.columns:
+            df_indicator.loc[:, country] = indicator_values[
                 indicator_values['Country'] == country]['Value']
 
-        df_countries = df_countries.astype(float).round(2)
-        return df_countries
+        df_indicator = df_indicator.astype(float).round(2)
+
+        # Convert quarterly data to monthly one
+        if freq == 'QS':
+            df_indicator = df_indicator.ffill(limit=2)
+
+        return df_indicator
 
     def get_key_indicator_values(self, indicator):
         file_name = indicator.lower().replace(' ', '_')
@@ -155,41 +159,6 @@ class DataProvider:
             df_oecd_indicator.to_csv(file_path)
             return df_oecd_indicator
 
-    def get_latest_data(self, indicator, df, date, periods):
-        if (indicator == 'GDP Annual Growth Rate' or
-                indicator == 'GDP Growth Rate'):
-            date_minus_2_quarters = date - pd.DateOffset(months=6)
-            latest_known_period = pd.to_datetime(
-                (f'{date_minus_2_quarters.year}-'
-                 f'Q{date_minus_2_quarters.quarter}'))
-            df_latest = df[:latest_known_period].iloc[-int(periods/3):]
-
-            # Convert quarterly to monthly data
-            new_monthly_index = pd.date_range(df_latest.index[0],
-                                              df_latest.index[-1] +
-                                              pd.DateOffset(months=2),
-                                              freq='MS')
-            df_latest_monthly = pd.DataFrame(
-                df_latest, index=new_monthly_index)
-            return df_latest_monthly.ffill()
-
-        if (indicator == 'Unemployment Rate' or
-                indicator == 'Inflation Rate' or
-                indicator == 'Inflation Rate MoM' or
-                indicator == 'OECD Bussiness Confidence Indicator'):
-            date_minus_2_months = date - pd.DateOffset(months=2)
-            latest_known_period = pd.to_datetime(
-                f'{date_minus_2_months.year}-{date_minus_2_months.month}-1')
-            return df[:latest_known_period].iloc[-periods:]
-
-        if (indicator == 'Manufacturing PMI' or indicator == 'Services PMI'):
-            months = 1 if date.day >= 6 else 2
-            date_minus_1_or_2_month = date - pd.DateOffset(months=months)
-            latest_known_period = pd.to_datetime(
-                (f'{date_minus_1_or_2_month.year}-'
-                 f'{date_minus_1_or_2_month.month}-1'))
-            return df[:latest_known_period].iloc[-periods:]
-
     def calculate_correlations_for_returns(self):
         df_countries, _ = self.get_etf_data()
         df_monthly_prices = df_countries.resample('MS').first()
@@ -235,4 +204,87 @@ class DataProvider:
             df_manufacturing_pmi.loc[
                 missing_dates, country] = values_from_bussines_confidence
 
+        df_manufacturing_pmi = df_manufacturing_pmi.round(2)
         return df_manufacturing_pmi
+
+    def normilize_dataframe(self, df):
+        df_mean = df.to_numpy().mean()
+        df_std = df.to_numpy().std()
+        df_normalized = (df - df_mean) / df_std
+        return df_normalized
+
+    def get_latest_data(self, indicator, df, date, periods):
+        if (indicator == 'GDP Annual Growth Rate' or
+                indicator == 'GDP Growth Rate'):
+            date_minus_2_quarters = date - pd.DateOffset(months=6)
+            latest_known_period = pd.to_datetime(
+                (f'{date_minus_2_quarters.year}-'
+                 f'Q{date_minus_2_quarters.quarter}')) + pd.DateOffset(
+                     months=2)
+            return df[:latest_known_period].iloc[-periods:]
+
+        if (indicator == 'Unemployment Rate' or
+                indicator == 'Inflation Rate' or
+                indicator == 'Inflation Rate MoM' or
+                indicator == 'OECD Bussiness Confidence Indicator'):
+            date_minus_2_months = date - pd.DateOffset(months=2)
+            latest_known_period = pd.to_datetime(
+                f'{date_minus_2_months.year}-{date_minus_2_months.month}-1')
+            return df[:latest_known_period].iloc[-periods:]
+
+        if (indicator == 'Manufacturing PMI' or indicator == 'Services PMI'):
+            months = 1 if date.day >= 6 else 2
+            date_minus_1_or_2_month = date - pd.DateOffset(months=months)
+            latest_known_period = pd.to_datetime(
+                (f'{date_minus_1_or_2_month.year}-'
+                 f'{date_minus_1_or_2_month.month}-1'))
+            return df[:latest_known_period].iloc[-periods:]
+
+    def calculate_composite_indicator(self, date, periods):
+        df_composite = pd.DataFrame(
+            data=np.zeros((periods, len(self.selected_countries))),
+            columns=self.selected_countries)
+
+        for indicator in self.key_indicators:
+            df = self.get_key_indicator_values(indicator)
+            df_normalized = self.normilize_dataframe(df)
+            df_last_values = self.get_latest_data(indicator, df_normalized,
+                                                  date, periods)
+
+            # Standarize indexes as indicators release values differently
+            df_last_values.index = range(periods)
+
+            # Give more weight to Manufacturing PMI being the most
+            # recent value and the most relevant to predict economic cycle
+            weight = 0.5 if indicator == 'Manufacturing PMI' else 0.1
+            df_composite += df_last_values*weight
+
+        return df_composite
+
+    def get_days_to_recalculate(self):
+        file_path = 'cache/days_to_rebalance.csv'
+        if os.path.isfile(file_path):
+            df_cache = pd.read_csv(file_path, index_col=0)
+            return df_cache['Days to rebalance']
+
+        df_countries, _ = self.get_etf_data()
+
+        sql_handler = SqlAlquemySelectDataHandler()
+        max_report_date = sql_handler.get_max_pmi_report_day()
+
+        # Add extra 2 days for years 1999 to 2012 where PMI are mainly
+        # extrapolated from Bussiness Confidence Indicators
+        max_report_date[max_report_date.dt.day == 1] += pd.DateOffset(days=2)
+
+        # Get next trading day after last PMI index is published
+        days_to_rebalance = []
+        for month_start in max_report_date.values:
+            from_date = month_start.astype(str)[:10]
+
+            days_to_rebalance.append(df_countries[
+                from_date:].index.values[1].astype(str)[:10])
+
+        days_to_rebalance_series = pd.Series(days_to_rebalance,
+                                             name='Days to rebalance')
+        days_to_rebalance_series.to_csv(file_path)
+        return days_to_rebalance_series

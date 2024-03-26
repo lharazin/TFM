@@ -67,6 +67,25 @@ class SqlAlquemySelectDataHandler:
         df = pd.DataFrame(records)
         return df
 
+    def get_max_pmi_report_day(self):
+        records = []
+        with self.engine.connect() as connection:
+            result = connection.execute(sal.text(
+                "SELECT MAX(ReportDateTime) AS MaxReportDate "
+                "FROM InvestingEconomicCalendar "
+                "WHERE Indicator LIKE '%Manufacturing PMI%' AND "
+                "   Indicator NOT LIKE '%Non-Manufacturing PMI%' AND "
+                "   DAY(ReportDateTime) < 11 AND "
+                "   ReportDateTime < '2024-01-01' "
+                "GROUP BY CAST(MONTH(ReportDateTime) AS VARCHAR(2)) "
+                "   + '-' + CAST(YEAR(ReportDateTime) AS VARCHAR(4))"
+                "ORDER BY MAX(ReportDateTime)"))
+            for row in result:
+                records.append(row)
+
+        df = pd.DataFrame(records)
+        return df['MaxReportDate']
+
     def __get_sql_alquemy_engine(self):
         db_server_address = os.environ.get("AWS_DB_SERVER_ADDRESS")
         db_server_port = 1433
