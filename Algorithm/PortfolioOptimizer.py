@@ -31,7 +31,7 @@ class PortfolioOptimizer:
         prob = cp.Problem(cp.Maximize(ret - gamma*risk), constraints)
         risk_data = np.zeros(n_samples)
         ret_data = np.zeros(n_samples)
-        gamma_vals = np.logspace(-1, 10, num=n_samples)
+        gamma_vals = np.logspace(-0.9, 10, num=n_samples)
 
         portfolio_weights = []
         for i in range(n_samples):
