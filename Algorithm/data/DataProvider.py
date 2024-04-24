@@ -27,6 +27,8 @@ class DataProvider:
             'Manufacturing PMI'
         ]
 
+        self.corr_dict = {}
+
     def get_etf_data(self):
         countries_file_path = 'cache/df_countries.csv'
         benchmark_file_path = 'cache/benchmark.csv'
@@ -160,32 +162,45 @@ class DataProvider:
             df_oecd_indicator.to_csv(file_path)
             return df_oecd_indicator
 
-    def calculate_correlations_for_returns(self):
+    def calculate_correlations_for_returns(self, month):
+        if month.startswith('1999'):
+            month = '1999-12'  # take minimum 1 year of data
+
         df_countries, _ = self.get_etf_data()
-        df_monthly_prices = df_countries.resample('MS').first()
-        df_returns = np.log(df_monthly_prices).diff().dropna()
+        bdays_in_year = 252
+        df_prices_last_12_months = df_countries[:month].iloc[-bdays_in_year:]
+        df_returns = np.log(df_prices_last_12_months).diff().dropna()
         corr = df_returns.corr()
         return corr
 
     def fill_missing_values(self, df):
-        corr = self.calculate_correlations_for_returns()
+        # Cache corr matrix to avoid recalculating multiple times
+        if len(self.corr_dict) == 0:
+            for date in df.index:
+                month = f'{date:%Y-%m}'
+                corr = self.calculate_correlations_for_returns(month)
+                self.corr_dict[month] = corr
 
         df = df.ffill(limit=3).bfill(limit=3)
         countries_with_missing_data = df.columns[df.isna().sum() > 0]
 
         for country in countries_with_missing_data:
-            most_correlated_countries = corr[country].sort_values()[
-                ::-1][1:].index
-            most_correlated_countries_with_data = most_correlated_countries[
-                ~most_correlated_countries.isin(
-                    countries_with_missing_data)][:5]
-
             missing_dates = df[df[country].isna()].index
-            mean_values = df.loc[
-                missing_dates, most_correlated_countries_with_data].mean(
-                    axis=1).round(2)
 
-            df.loc[missing_dates, country] = mean_values
+            for date in missing_dates:
+                month = f'{date:%Y-%m}'
+                corr = self.corr_dict[month]
+
+                most_corr_countries = corr[country].sort_values()[
+                    ::-1][1:].index
+                most_correlated_countries_with_data = most_corr_countries[
+                    ~most_corr_countries.isin(
+                        countries_with_missing_data)][:5]
+
+                mean_values = df.loc[
+                    date, most_correlated_countries_with_data].mean().round(2)
+
+                df.loc[date, country] = mean_values
 
         return df
 
@@ -199,6 +214,7 @@ class DataProvider:
         for country in countries_with_missing_data:
             missing_dates = df_manufacturing_pmi[df_manufacturing_pmi[
                 country].isna()].index
+
             values_from_bussines_confidence = df_bussiness_confidence.loc[
                 missing_dates, country] - 50
 

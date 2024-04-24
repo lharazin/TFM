@@ -1,4 +1,4 @@
 TODO despues de la turoria de 08/04/2024:
-- corregir relleno de NAs - utilizar datos de correlaciones solamente hasta la fecha de valor faltante
++ corregir relleno de NAs - utilizar datos de correlaciones solamente hasta la fecha de valor faltante
 - probar otros metodos para indicador compuesto como regression con modelo factorial con retornos como target
 - para el modelo base intentar varios metodos mas simples de ML como Random Forest o XG Boost
