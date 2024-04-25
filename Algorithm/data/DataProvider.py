@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from SqlAlquemySelectDataHandler import SqlAlquemySelectDataHandler
+from sklearn.decomposition import PCA
 
 
 class DataProvider:
@@ -257,7 +258,7 @@ class DataProvider:
                  f'{date_minus_1_or_2_month.month}-1'))
             return df[:latest_known_period].iloc[-periods:]
 
-    def calculate_composite_indicator(self, date, periods):
+    def calculate_simple_composite_indicator(self, date, periods):
         df_composite = pd.DataFrame(
             data=np.zeros((periods, len(self.selected_countries))),
             columns=self.selected_countries)
@@ -277,6 +278,31 @@ class DataProvider:
             df_composite += df_last_values*weight
 
         return df_composite
+
+    def calculate_principal_component_from_indicators(self, date, periods):
+        indicators_norm = pd.DataFrame(
+            data=np.zeros((periods*len(self.selected_countries),
+                           len(self.key_indicators))),
+            columns=self.key_indicators)
+
+        for indicator in self.key_indicators:
+            df = self.get_key_indicator_values(indicator)
+            df_normalized = self.normilize_dataframe(df)
+            df_last_values = self.get_latest_data(indicator, df_normalized,
+                                                  date, periods=periods)
+
+            indicators_norm.loc[:, indicator] = (
+                df_last_values.values.reshape(-1))
+
+        pca = PCA(n_components=1)
+        principal_component = pca.fit_transform(indicators_norm)
+
+        principal_component_arr = principal_component.reshape(
+            -1, len(self.selected_countries))
+        principal_component_df = pd.DataFrame(principal_component_arr,
+                                              index=range(periods),
+                                              columns=self.selected_countries)
+        return principal_component_df
 
     def get_days_to_recalculate(self):
         file_path = 'cache/days_to_rebalance.csv'
