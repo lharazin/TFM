@@ -146,6 +146,7 @@ webencodings==0.5.1
 Werkzeug==2.2.3
 wrapt==1.16.0
 wsproto==1.2.0
+xgboost==2.0.3
 xmltodict==0.13.0
 yfinance==0.2.28
 zipp==3.17.0
