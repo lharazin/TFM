@@ -73,6 +73,11 @@ def train_and_evaluate_model(model, x_train, y_train,
 def calculate_returns_for_model(model, x_test, dates_for_test,
                                 df_returns_test, selected_countries):
     predictions = model.predict(x_test)
+
+    # Rescale to sum 1
+    predictions_sum = predictions.sum(axis=1).reshape(predictions.shape[0], 1)
+    predictions = np.divide(predictions, predictions_sum)
+
     predictions_df = pd.DataFrame(predictions,
                                   index=dates_for_test,
                                   columns=selected_countries)
