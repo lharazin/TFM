@@ -1,4 +1,29 @@
-TODO despues de la turoria de 08/04/2024:
-+ corregir relleno de NAs - utilizar datos de correlaciones solamente hasta la fecha de valor faltante
-+ probar otros metodos para indicador compuesto como regression con modelo factorial con retornos como target
-+ para el modelo base intentar varios metodos mas simples de ML como Random Forest o XG Boost
+TODO despues de la tutoria de 22/03/2024:
++	Preparar datos: homogenizar datos mensuales y trimestrales
++	Rellenar valores NA con medias de países mas correlacionados
++	Transformar conjunto de indicadores a un indicador complejo por país
++	Crear un target de cartera con max sharpe y optimización cuadrática
++	Programar una red simple con un indicador complejo y un target para dar pesos
++	Programar un modelo funcional base
+-	Comprobar un método alternativo de Learn to rank
+
+
+TODO despues de la tutoria de 08/04/2024:
++   corregir relleno de NAs - utilizar datos de correlaciones solamente hasta la fecha de valor faltante
++   probar otros metodos para indicador compuesto como regression con modelo factorial con retornos como target
++   para el modelo base intentar varios metodos mas simples de ML como Random Forest o XG Boost
+
+
+TODO restante:
+-   Comprobar pasar indicadores por separado
+-   Anadir mas indicadores al backtesting
+-	Comprobar un método alternativo de Learn to rank con segundo modelo de optimizacion para pesos
+
+
+
+Preguntas:
+-	Tiene sentido expandir el algoritmo para todos 80+ indicadores que he recogido? 
+    Cómo decidir que indicadores merecen la pena incluir?
+-	Por ahora solo he elegido ETFs de Nasdaq en USD con más datos históricos. 
+    Debería hacer la segunda versión con ETFs en EUR para ser más aplicable al mercado europeo?
+-   Como incluir mis estimaciones del ciclo economico de Investment Clock?
