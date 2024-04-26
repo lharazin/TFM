@@ -108,10 +108,67 @@ def daily_to_annual_returns(daily_returns):
     return anual_ret
 
 
-def calculate_metrics(df_returns, df_results, name):
+def calculate_metrics(df_returns, df_results, name, benchmark_returns=None):
     annual_returns = daily_to_annual_returns(df_returns)
     annual_volatility = df_returns.std()*np.sqrt(252)
     annual_sharpe = annual_returns/annual_volatility
 
-    df_results.loc[name, :] = [annual_returns,
-                               annual_volatility, annual_sharpe]
+    if len(df_results.columns) == 3:
+        df_results.loc[name, :] = [annual_returns,
+                                   annual_volatility,
+                                   annual_sharpe]
+        return
+
+    annual_negative_volatility = df_returns[df_returns < 0].std()*np.sqrt(252)
+    annual_sortino = annual_returns/annual_negative_volatility
+
+    cum_total_returns = (1 + df_returns).cumprod()
+    peak = cum_total_returns.expanding(min_periods=1).max()
+    drawdowns = (cum_total_returns/peak)-1
+    max_drawdown = drawdowns.min()
+
+    time_under_water = calculate_time_under_water(cum_total_returns)
+    max_time_under_water = time_under_water.max()
+
+    annual_calmar_ratio = annual_returns/abs(max_drawdown)
+
+    information_ratio = 0
+    if benchmark_returns is not None:
+        information_ratio = calculate_information_ratio(
+            df_returns, benchmark_returns)
+
+    df_results.loc[name, :] = [annual_returns, annual_volatility,
+                               annual_sharpe, annual_sortino,
+                               max_drawdown, max_time_under_water,
+                               annual_calmar_ratio, information_ratio]
+
+
+def calculate_time_under_water(cum_total_returns):
+    under_water = (cum_total_returns <
+                   cum_total_returns.cummax()).astype(float)
+
+    cut_uw = under_water[under_water == 0]
+    if cut_uw.index[-1] != under_water.index[-1]:
+        cut_uw.loc[under_water.index[-1]] = 0
+
+    tuw = pd.Series(np.zeros(under_water.shape), index=under_water.index)
+    current = cut_uw.index[0]
+
+    for idate in cut_uw.index[1:]:
+        tuw.loc[current:idate] = under_water[current:idate].cumsum()
+        current = idate
+
+    return tuw
+
+
+def calculate_information_ratio(df_returns, benchmark_returns):
+    init_date = benchmark_returns.index[0]
+    end_date = benchmark_returns.index[-1]
+    years_in = (end_date - init_date) / pd.Timedelta(days=365, hours=6)
+    bdays_year = int(benchmark_returns.shape[0]/years_in)
+
+    active_dayret = df_returns - benchmark_returns
+    active_dayret.dropna().head()
+    tracking_error = np.sqrt(bdays_year) * active_dayret.std()
+    inform_ratio = (bdays_year * active_dayret.mean()) / tracking_error
+    return inform_ratio

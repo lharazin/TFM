@@ -15,8 +15,8 @@ TODO despues de la tutoria de 08/04/2024:
 
 
 TODO restante:
--   Comprobar pasar indicadores por separado
--   Anadir mas indicadores al backtesting
++   Comprobar pasar indicadores por separado
++   Anadir mas metricas al backtesting
 -	Comprobar un método alternativo de Learn to rank con segundo modelo de optimizacion para pesos
 
 
