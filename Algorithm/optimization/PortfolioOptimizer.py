@@ -5,12 +5,8 @@ import cvxpy as cp
 
 class PortfolioOptimizer:
 
-    def get_optimal_portfolio(self, data_period, acwi_weights):
+    def get_optimal_portfolio(self, data_period, w, constraints):
         returns = np.log(data_period).diff().dropna()
-
-        w = cp.Variable(acwi_weights.shape[1])
-        constraints = self.get_constraints(w, acwi_weights)
-
         ret_data, risk_data, portfolio_weights = self.efficient_frontier(
             returns, w, constraints)
 
@@ -42,7 +38,9 @@ class PortfolioOptimizer:
             portfolio_weights.append(w.value)
         return ret_data, risk_data, portfolio_weights
 
-    def get_constraints(self, w, acwi_weights):
+    def get_normal_constraints(self, acwi_weights):
+        w = cp.Variable(acwi_weights.shape[1])
+
         constraints = [cp.sum(w) == 1]
         i = 0
 
@@ -66,5 +64,51 @@ class PortfolioOptimizer:
                 w[i] <= max_weight
             ]
             i += 1
+        return w, constraints
 
-        return constraints
+    def get_constraints_for_ranking(self, acwi_weights, ranked_countries):
+        w = cp.Variable(acwi_weights.shape[1])
+        constraints = [cp.sum(w) == 1]
+        i = 0
+
+        for country in acwi_weights.columns:
+            benchmark_weight = acwi_weights.loc[:, country].values[0]
+            benchmark_weight = round(benchmark_weight/100, 3)
+            rank = ranked_countries[country]
+
+            if i < 3:  # Special constraints for US, Japan and UK
+                if rank < 10:
+                    min_weight = benchmark_weight
+                    max_weight = benchmark_weight*2
+                    if max_weight > 0.7:
+                        max_weight = 0.7
+                else:
+                    min_weight = benchmark_weight*0.5
+                    max_weight = benchmark_weight
+            else:
+                min_weight = 0.001
+                max_weight = 0.03
+
+            constraints += [
+                w[i] >= min_weight,
+                w[i] <= max_weight
+            ]
+
+            if i >= 3 and rank > 0:
+                higher_ranked_country = ranked_countries[
+                    ranked_countries == rank-1].index[0]
+                higher_ranked_country_idx = acwi_weights.columns.get_loc(
+                    higher_ranked_country)
+                if higher_ranked_country_idx >= 3:
+                    constraints.append(w[i] <= w[higher_ranked_country_idx])
+                elif rank > 1:
+                    higher_ranked_country = ranked_countries[
+                        ranked_countries == rank-2].index[0]
+                    higher_ranked_country_idx = acwi_weights.columns.get_loc(
+                        higher_ranked_country)
+                    if higher_ranked_country_idx >= 3:
+                        constraints.append(
+                            w[i] <= w[higher_ranked_country_idx])
+            i += 1
+
+        return w, constraints
