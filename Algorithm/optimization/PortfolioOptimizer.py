@@ -14,7 +14,6 @@ class PortfolioOptimizer:
         idx = np.argmax(sharpes)
         optimal_portfolio = pd.Series(portfolio_weights[idx],
                                       index=returns.columns).round(3)
-
         return optimal_portfolio
 
     def efficient_frontier(self, returns, w, constraints, n_samples=20):
@@ -27,7 +26,7 @@ class PortfolioOptimizer:
         prob = cp.Problem(cp.Maximize(ret - gamma*risk), constraints)
         risk_data = np.zeros(n_samples)
         ret_data = np.zeros(n_samples)
-        gamma_vals = np.logspace(-0.9, 10, num=n_samples)
+        gamma_vals = np.logspace(-1, 10, num=n_samples)
 
         portfolio_weights = []
         for i in range(n_samples):
@@ -47,15 +46,43 @@ class PortfolioOptimizer:
         for country in acwi_weights.columns:
             weights = acwi_weights.loc[:, country].values[0]
 
-            # Min weight between 0.1% and 30%
+            # Min weight between 0.1% and 25%
             min_weight = round(weights*0.5/100, 3)
             if min_weight < 0.001:
                 min_weight = 0.001
 
-            # Max weight between 3% to 70%
+            # Max weight between 3% to 75%
             max_weight = round(weights*2/100, 3)
             if max_weight < 0.03:
                 max_weight = 0.03
+            elif max_weight > 0.75:
+                max_weight = 0.75
+
+            constraints += [
+                w[i] >= min_weight,
+                w[i] <= max_weight
+            ]
+            i += 1
+        return w, constraints
+
+    def get_tight_constraints(self, acwi_weights):
+        w = cp.Variable(acwi_weights.shape[1])
+
+        constraints = [cp.sum(w) == 1]
+        i = 0
+
+        for country in acwi_weights.columns:
+            weights = acwi_weights.loc[:, country].values[0]
+
+            # Min weight between 0.1% and 35%
+            min_weight = round(weights*0.7/100, 3)
+            if min_weight < 0.001:
+                min_weight = 0.001
+
+            # Max weight between 2% to 70%
+            max_weight = round(weights*1.5/100, 3)
+            if max_weight < 0.02:
+                max_weight = 0.02
             elif max_weight > 0.7:
                 max_weight = 0.7
 
@@ -63,6 +90,35 @@ class PortfolioOptimizer:
                 w[i] >= min_weight,
                 w[i] <= max_weight
             ]
+            i += 1
+        return w, constraints
+
+    def get_loose_constraints(self, acwi_weights):
+        w = cp.Variable(acwi_weights.shape[1])
+
+        constraints = [cp.sum(w) == 1]
+        i = 0
+
+        for country in acwi_weights.columns:
+            weights = acwi_weights.loc[:, country].values[0]
+
+            # Min weight between 0% and 15%
+            min_weight = round(weights*0.3/100, 4)
+
+            # Max weight between 4% to 80%
+            max_weight = round(weights*3/100, 3)
+            if max_weight < 0.04:
+                max_weight = 0.04
+            elif max_weight > 0.8:
+                max_weight = 0.8
+
+            if min_weight <= 0.001:
+                constraints.append(w[i] <= max_weight)
+            else:
+                constraints += [
+                    w[i] >= min_weight,
+                    w[i] <= max_weight
+                ]
             i += 1
         return w, constraints
 
