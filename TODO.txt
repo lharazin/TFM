@@ -21,10 +21,14 @@ Otras cosas implementadas:
 
 
 
+TODO despues de la tutoria de 30/04/2024:
+-   incluir mas indicadores
+-   ajustar hiperparametros de los modelos mas prometedores
+-   empezar con la memoria
+
+
+
 Preguntas:
--	Tiene sentido expandir el algoritmo para todos 80+ indicadores que he recogido? 
-    Cómo decidir que indicadores merecen la pena incluir?
 -   Como incluir mis estimaciones del ciclo economico de Investment Clock?
 -	Por ahora solo he elegido ETFs de Nasdaq en USD con más datos históricos. 
     Debería hacer la segunda versión con ETFs en EUR para ser más aplicable al mercado europeo?
--   Que mas hace falta para un TFM basico, pero completo?

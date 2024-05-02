@@ -145,6 +145,13 @@ class DataProvider:
             df_combined.to_csv(file_path)
             return df_combined
 
+        if indicator == 'Central Bank Rate':
+            df_interest_rate = self.read_central_bank_rates()
+            df_interest_rate = self.fill_missing_values(df_interest_rate)
+
+            df_interest_rate.to_csv(file_path)
+            return df_interest_rate
+
         if (indicator == 'Manufacturing PMI'):
             df_investing_indicator = self.get_indicator_values(
                 indicator, 'Investing', 'MS')
@@ -159,6 +166,24 @@ class DataProvider:
         if (indicator == 'OECD Bussiness Confidence Indicator'):
             df_oecd_indicator = self.get_indicator_values(
                 indicator, 'OECD', 'MS')
+            df_oecd_indicator.to_csv(file_path)
+            return df_oecd_indicator
+
+        if (indicator == 'Short Term Interest Rate' or
+                indicator == 'Long Term Interest Rate' or
+                indicator == 'Total Manufacturing' or
+                indicator == 'OECD Consumer Confidence Indicator'):
+            df_oecd_indicator = self.get_indicator_values(
+                indicator, 'OECD', 'MS')
+            df_oecd_indicator = self.fill_missing_values(df_oecd_indicator)
+
+            df_oecd_indicator.to_csv(file_path)
+            return df_oecd_indicator
+
+        if (indicator == 'Current Account to GDP'):
+            df_oecd_indicator = self.get_indicator_values(
+                indicator, 'OECD', 'QS')
+            df_oecd_indicator = self.fill_missing_values(df_oecd_indicator)
 
             df_oecd_indicator.to_csv(file_path)
             return df_oecd_indicator
@@ -231,9 +256,27 @@ class DataProvider:
         df_normalized = (df - df_mean) / df_std
         return df_normalized
 
+    def read_central_bank_rates(self):
+        sql_handler = SqlAlquemySelectDataHandler()
+        interest_rates = sql_handler.read_market_symbols('Central Bank Rate')
+
+        df_rates = pd.DataFrame(
+            index=pd.date_range('1999-01-01', '2023-12-29', freq='D'),
+            columns=self.selected_countries)
+
+        for country in df_rates.columns:
+            if country in interest_rates.index:
+                symbol = interest_rates.loc[country]['Code']
+                df_rates.loc[:, country] = sql_handler.read_market_data(symbol)
+
+        df_rates_filled = df_rates.ffill().bfill()
+        df_rates_filled = df_rates_filled.asfreq('MS')
+        return df_rates_filled
+
     def get_latest_data(self, indicator, df, date, periods):
         if (indicator == 'GDP Annual Growth Rate' or
-                indicator == 'GDP Growth Rate'):
+                indicator == 'GDP Growth Rate' or
+                indicator == 'Current Account to GDP'):
             date_minus_2_quarters = date - pd.DateOffset(months=6)
             latest_known_period = pd.to_datetime(
                 (f'{date_minus_2_quarters.year}-'
@@ -244,7 +287,11 @@ class DataProvider:
         if (indicator == 'Unemployment Rate' or
                 indicator == 'Inflation Rate' or
                 indicator == 'Inflation Rate MoM' or
-                indicator == 'OECD Bussiness Confidence Indicator'):
+                indicator == 'OECD Bussiness Confidence Indicator' or
+                indicator == 'Short Term Interest Rate' or
+                indicator == 'Long Term Interest Rate' or
+                indicator == 'Total Manufacturing' or
+                indicator == 'OECD Consumer Confidence Indicator'):
             date_minus_2_months = date - pd.DateOffset(months=2)
             latest_known_period = pd.to_datetime(
                 f'{date_minus_2_months.year}-{date_minus_2_months.month}-1')
@@ -256,6 +303,11 @@ class DataProvider:
             latest_known_period = pd.to_datetime(
                 (f'{date_minus_1_or_2_month.year}-'
                  f'{date_minus_1_or_2_month.month}-1'))
+            return df[:latest_known_period].iloc[-periods:]
+
+        if (indicator == 'Central Bank Rate'):
+            latest_known_period = pd.to_datetime(
+                f'{date.year}-{date.month}-1')
             return df[:latest_known_period].iloc[-periods:]
 
     def calculate_simple_composite_indicator(self, date, periods):
