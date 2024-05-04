@@ -28,6 +28,17 @@ class DataProvider:
             'Manufacturing PMI'
         ]
 
+        self.additional_indicators = [
+            'Central Bank Rate',
+            'Short Term Interest Rate',
+            'Long Term Interest Rate',
+            'Total Manufacturing',
+            'OECD Consumer Confidence Indicator',
+            'Current Account to GDP',
+            'Producer Price Index',
+            'Industrial Production'
+        ]
+
         self.corr_dict = {}
 
     def get_etf_data(self):
@@ -111,6 +122,23 @@ class DataProvider:
 
         return df_indicator
 
+    def read_central_bank_rates(self):
+        sql_handler = SqlAlquemySelectDataHandler()
+        interest_rates = sql_handler.read_market_symbols('Central Bank Rate')
+
+        df_rates = pd.DataFrame(
+            index=pd.date_range('1999-01-01', '2023-12-29', freq='D'),
+            columns=self.selected_countries)
+
+        for country in df_rates.columns:
+            if country in interest_rates.index:
+                symbol = interest_rates.loc[country]['Code']
+                df_rates.loc[:, country] = sql_handler.read_market_data(symbol)
+
+        df_rates_filled = df_rates.ffill().bfill()
+        df_rates_filled = df_rates_filled.asfreq('MS')
+        return df_rates_filled
+
     def get_key_indicator_values(self, indicator):
         file_name = indicator.lower().replace(' ', '_')
         file_path = f'cache/{file_name}.csv'
@@ -133,7 +161,8 @@ class DataProvider:
 
         if (indicator == 'Unemployment Rate' or
                 indicator == 'Inflation Rate' or
-                indicator == 'Inflation Rate MoM'):
+                indicator == 'Inflation Rate MoM' or
+                indicator == 'Industrial Production'):
             df_investing_indicator = self.get_indicator_values(
                 indicator, 'Investing', 'MS')
             df_oecd_indicator = self.get_indicator_values(
@@ -152,14 +181,18 @@ class DataProvider:
             df_interest_rate.to_csv(file_path)
             return df_interest_rate
 
-        if (indicator == 'Manufacturing PMI'):
+        if (indicator == 'Manufacturing PMI' or
+                indicator == 'Producer Price Index' or
+                indicator == 'Retail Sales'):
             df_investing_indicator = self.get_indicator_values(
                 indicator, 'Investing', 'MS')
 
-            df_investing_indicator = self.fill_manufacturing_pmi(
-                df_investing_indicator)
+            if (indicator == 'Manufacturing PMI'):
+                df_investing_indicator = self.fill_manufacturing_pmi(
+                    df_investing_indicator)
             df_investing_indicator = self.fill_missing_values(
                 df_investing_indicator)
+
             df_investing_indicator.to_csv(file_path)
             return df_investing_indicator
 
@@ -256,23 +289,6 @@ class DataProvider:
         df_normalized = (df - df_mean) / df_std
         return df_normalized
 
-    def read_central_bank_rates(self):
-        sql_handler = SqlAlquemySelectDataHandler()
-        interest_rates = sql_handler.read_market_symbols('Central Bank Rate')
-
-        df_rates = pd.DataFrame(
-            index=pd.date_range('1999-01-01', '2023-12-29', freq='D'),
-            columns=self.selected_countries)
-
-        for country in df_rates.columns:
-            if country in interest_rates.index:
-                symbol = interest_rates.loc[country]['Code']
-                df_rates.loc[:, country] = sql_handler.read_market_data(symbol)
-
-        df_rates_filled = df_rates.ffill().bfill()
-        df_rates_filled = df_rates_filled.asfreq('MS')
-        return df_rates_filled
-
     def get_latest_data(self, indicator, df, date, periods):
         if (indicator == 'GDP Annual Growth Rate' or
                 indicator == 'GDP Growth Rate' or
@@ -282,7 +298,6 @@ class DataProvider:
                 (f'{date_minus_2_quarters.year}-'
                  f'Q{date_minus_2_quarters.quarter}')) + pd.DateOffset(
                      months=2)
-            return df[:latest_known_period].iloc[-periods:]
 
         if (indicator == 'Unemployment Rate' or
                 indicator == 'Inflation Rate' or
@@ -291,11 +306,11 @@ class DataProvider:
                 indicator == 'Short Term Interest Rate' or
                 indicator == 'Long Term Interest Rate' or
                 indicator == 'Total Manufacturing' or
-                indicator == 'OECD Consumer Confidence Indicator'):
+                indicator == 'OECD Consumer Confidence Indicator' or
+                indicator == 'Producer Price Index'):
             date_minus_2_months = date - pd.DateOffset(months=2)
             latest_known_period = pd.to_datetime(
                 f'{date_minus_2_months.year}-{date_minus_2_months.month}-1')
-            return df[:latest_known_period].iloc[-periods:]
 
         if (indicator == 'Manufacturing PMI' or indicator == 'Services PMI'):
             months = 1 if date.day >= 6 else 2
@@ -303,12 +318,18 @@ class DataProvider:
             latest_known_period = pd.to_datetime(
                 (f'{date_minus_1_or_2_month.year}-'
                  f'{date_minus_1_or_2_month.month}-1'))
-            return df[:latest_known_period].iloc[-periods:]
 
         if (indicator == 'Central Bank Rate'):
             latest_known_period = pd.to_datetime(
                 f'{date.year}-{date.month}-1')
-            return df[:latest_known_period].iloc[-periods:]
+
+        if (indicator == 'Industrial Production' or
+                indicator == 'Retail Sales'):
+            date_minus_3_months = date - pd.DateOffset(months=3)
+            latest_known_period = pd.to_datetime(
+                f'{date_minus_3_months.year}-{date_minus_3_months.month}-1')
+
+        return df[:latest_known_period].iloc[-periods:]
 
     def calculate_simple_composite_indicator(self, date, periods):
         df_composite = pd.DataFrame(
