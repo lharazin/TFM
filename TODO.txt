@@ -22,7 +22,7 @@ Otras cosas implementadas:
 
 
 TODO despues de la tutoria de 30/04/2024:
--   incluir mas indicadores
++   incluir mas indicadores
 -   ajustar hiperparametros de los modelos mas prometedores
 -   empezar con la memoria
 
