@@ -29,14 +29,15 @@ class DataProvider:
         ]
 
         self.additional_indicators = [
+            'Producer Price Index',
             'Central Bank Rate',
             'Short Term Interest Rate',
             'Long Term Interest Rate',
-            'Total Manufacturing',
-            'OECD Consumer Confidence Indicator',
             'Current Account to GDP',
-            'Producer Price Index',
-            'Industrial Production'
+            'Total Manufacturing',
+            'Industrial Production',
+            'OECD Consumer Confidence Indicator',
+            'Retail Sales'
         ]
 
         self.corr_dict = {}
