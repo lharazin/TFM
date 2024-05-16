@@ -35,13 +35,14 @@ def show_loss(hd):
 def train_and_evaluate_model(model, x_train, y_train,
                              x_val, y_val, x_test, y_test,
                              epochs=200, learning_rate=1e-3,
-                             with_early_stopping=False):
+                             with_early_stopping=False, verbose=True):
     start_time = time.time()
 
     model.compile(optimizer=Adam(learning_rate=learning_rate),
                   loss='mean_squared_error')
-    model.summary()
-    print()
+    if verbose:
+        model.summary()
+        print()
 
     callbacks = []
     if with_early_stopping:
@@ -54,7 +55,8 @@ def train_and_evaluate_model(model, x_train, y_train,
     hist = model.fit(x_train, y_train,
                      validation_data=(x_val, y_val),
                      epochs=epochs,
-                     callbacks=callbacks)
+                     callbacks=callbacks,
+                     verbose=verbose)
 
     train_error = model.evaluate(x_train, y_train, verbose=0)
     print('Train error:', train_error)
@@ -67,7 +69,8 @@ def train_and_evaluate_model(model, x_train, y_train,
 
     print('Execution time', round(time.time() - start_time, 2), 'seconds')
 
-    show_loss(hist.history)
+    if verbose:
+        show_loss(hist.history)
 
 
 def calculate_returns_for_model(model, x_test, dates_for_test,
@@ -80,6 +83,9 @@ def calculate_returns_for_model(model, x_test, dates_for_test,
 
 def calculate_returns_for_predictions(predictions, dates_for_test,
                                       df_returns_test, selected_countries):
+    # Allows long only allocations
+    predictions[predictions < 0] = 0
+
     # Rescale to sum 1
     predictions_sum = predictions.sum(axis=1).reshape(predictions.shape[0], 1)
     predictions = np.divide(predictions, predictions_sum)
