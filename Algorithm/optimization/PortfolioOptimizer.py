@@ -104,6 +104,8 @@ class PortfolioOptimizer:
 
             # Min weight between 0% and 15%
             min_weight = round(weights*0.3/100, 4)
+            if min_weight <= 0.001:
+                min_weight = 0
 
             # Max weight between 4% to 80%
             max_weight = round(weights*3/100, 3)
@@ -112,13 +114,10 @@ class PortfolioOptimizer:
             elif max_weight > 0.8:
                 max_weight = 0.8
 
-            if min_weight <= 0.001:
-                constraints.append(w[i] <= max_weight)
-            else:
-                constraints += [
-                    w[i] >= min_weight,
-                    w[i] <= max_weight
-                ]
+            constraints += [
+                w[i] >= min_weight,
+                w[i] <= max_weight
+            ]
             i += 1
         return w, constraints
 
