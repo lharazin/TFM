@@ -7,31 +7,6 @@ from keras.optimizers import Adam
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 
 
-def show_loss(hd):
-    epochs = range(1, len(hd['loss'])+1)
-
-    plt.figure(figsize=(15, 5))
-    plt.subplot(1, 2, 1)
-    plt.plot(epochs, hd['loss'], "r", label="train")
-    plt.plot(epochs, hd['val_loss'], "b", label="valid")
-    plt.grid(True)
-    plt.xlabel("epoch")
-    plt.ylabel("loss")
-    plt.title("Loss")
-    plt.legend()
-
-    plt.subplot(1, 2, 2)
-    plt.plot(epochs, hd['loss'], "r", label="train")
-    plt.plot(epochs, hd['val_loss'], "b", label="valid")
-    plt.grid(True)
-    plt.xlabel("epoch")
-    plt.ylabel("loss")
-    plt.yscale('log')  # Set y-axis to logarithmic scale
-    plt.title("Loss log")
-    plt.legend()
-    plt.show()
-
-
 def train_and_evaluate_model(model, x_train, y_train,
                              x_val, y_val, x_test, y_test,
                              epochs=200, learning_rate=1e-3,
@@ -71,6 +46,31 @@ def train_and_evaluate_model(model, x_train, y_train,
 
     if verbose:
         show_loss(hist.history)
+
+
+def show_loss(hd):
+    epochs = range(1, len(hd['loss'])+1)
+
+    plt.figure(figsize=(15, 5))
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs, hd['loss'], "r", label="train")
+    plt.plot(epochs, hd['val_loss'], "b", label="valid")
+    plt.grid(True)
+    plt.xlabel("epoch")
+    plt.ylabel("loss")
+    plt.title("Loss")
+    plt.legend()
+
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs, hd['loss'], "r", label="train")
+    plt.plot(epochs, hd['val_loss'], "b", label="valid")
+    plt.grid(True)
+    plt.xlabel("epoch")
+    plt.ylabel("loss")
+    plt.yscale('log')  # Set y-axis to logarithmic scale
+    plt.title("Loss log")
+    plt.legend()
+    plt.show()
 
 
 def calculate_returns_for_model(model, x_test, dates_for_test,
