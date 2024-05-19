@@ -73,16 +73,66 @@ def show_loss(hd):
     plt.show()
 
 
+def run_full_backtesting(data_provider, x_test, models):
+    df_countries, benchmark = data_provider.get_etf_data()
+    days_to_recalculate = data_provider.get_days_to_recalculate()
+    dates_for_test = days_to_recalculate[-x_test.shape[0]:]
+
+    dates_for_test.insert(29, df_countries.index.values[-1])
+    df_prices_test = df_countries[dates_for_test[0]:]
+    df_returns_test = np.log(df_prices_test).diff().fillna(0)
+
+    benchmark_test = benchmark[dates_for_test[0]:]
+    benchmark_returns = np.log(benchmark_test).diff().dropna()
+    total_returns_dict = {'Benchmark': benchmark_returns}
+
+    cum_benchmark_returns = (1 + benchmark_returns).cumprod() - 1
+    cum_benchmark_returns.loc[dates_for_test[0]] = 0
+    cum_benchmark_returns.sort_index(inplace=True)
+    cum_total_returns_dict = {'Benchmark': cum_benchmark_returns}
+
+    for key, model in models.items():
+        total_returns, cum_total_returns = calculate_returns_for_model(
+            model, x_test, dates_for_test, df_returns_test)
+
+        total_returns_dict[key] = total_returns
+        cum_total_returns_dict[key] = cum_total_returns
+
+    plt.figure(figsize=(20, 5))
+    for key, cum_total_returns in cum_total_returns_dict.items():
+        plt.plot(cum_total_returns, label=key)
+    plt.legend()
+    plt.title('Returns comparison')
+    plt.show()
+
+    df_results = pd.DataFrame(columns=['Annual Returns',
+                                       'Annual Volatility',
+                                       'Sharpe Ratio',
+                                       'Sortino Ratio',
+                                       'Max Drawdown',
+                                       'Max Time Under Water',
+                                       'Calmar Ratio',
+                                       'Information Ratio'])
+    for key, total_returns in total_returns_dict.items():
+        if key != 'Benchmark':
+            calculate_metrics(total_returns, df_results, key,
+                              total_returns_dict['Benchmark'])
+        else:
+            calculate_metrics(total_returns, df_results, key)
+
+    return df_results
+
+
 def calculate_returns_for_model(model, x_test, dates_for_test,
-                                df_returns_test, selected_countries):
+                                df_returns_test):
     predictions = model.predict(x_test)
     total_returns, cum_total_returns = calculate_returns_for_predictions(
-        predictions, dates_for_test, df_returns_test, selected_countries)
+        predictions, dates_for_test, df_returns_test)
     return total_returns, cum_total_returns
 
 
 def calculate_returns_for_predictions(predictions, dates_for_test,
-                                      df_returns_test, selected_countries):
+                                      df_returns_test):
     # Allows long only allocations
     predictions[predictions < 0] = 0
 
@@ -91,8 +141,7 @@ def calculate_returns_for_predictions(predictions, dates_for_test,
     predictions = np.divide(predictions, predictions_sum)
 
     predictions_df = pd.DataFrame(predictions,
-                                  index=dates_for_test,
-                                  columns=selected_countries)
+                                  index=dates_for_test)
     predictions_df = predictions_df.reindex(index=df_returns_test.index)
     # Fill the entire month with predicted weights
     predictions_df = predictions_df.ffill()

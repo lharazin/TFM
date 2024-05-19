@@ -3,6 +3,7 @@ import numpy as np
 import os
 from SqlAlquemySelectDataHandler import SqlAlquemySelectDataHandler
 from sklearn.decomposition import PCA
+from PortfolioOptimizer import PortfolioOptimizer
 
 
 class DataProvider:
@@ -384,26 +385,101 @@ class DataProvider:
         file_path = 'cache/days_to_rebalance.csv'
         if os.path.isfile(file_path):
             df_cache = pd.read_csv(file_path, index_col=0)
-            return df_cache['Days to rebalance']
+            days_to_rebalance_series = df_cache['Days to rebalance']
+        else:
+            df_countries, _ = self.get_etf_data()
 
+            sql_handler = SqlAlquemySelectDataHandler()
+            max_report_date = sql_handler.get_max_pmi_report_day()
+
+            # Add extra 2 days for years 1999 to 2012 where PMI are mainly
+            # extrapolated from Bussiness Confidence Indicators
+            max_report_date[max_report_date.dt.day ==
+                            1] += pd.DateOffset(days=2)
+
+            # Get next trading day after last PMI index is published
+            days_to_rebalance = []
+            for month_start in max_report_date.values:
+                from_date = month_start.astype(str)[:10]
+
+                days_to_rebalance.append(df_countries[
+                    from_date:].index.values[1].astype(str)[:10])
+
+            days_to_rebalance_series = pd.Series(days_to_rebalance,
+                                                 name='Days to rebalance')
+            days_to_rebalance_series.to_csv(file_path)
+
+        # Start after 1 year to have enough historic data for first rebalancing
+        days_to_recalculate = days_to_rebalance_series.iloc[12:]
+        days_to_recalculate = pd.DatetimeIndex(days_to_recalculate)
+        return days_to_recalculate
+
+    def get_formatted_features(self, no_months=6, flatten=False):
+        days_to_recalculate = self.get_days_to_recalculate()
+        all_indicators = self.key_indicators + self.additional_indicators
+
+        x = []
+        for date in days_to_recalculate:
+            indicators = self.calculate_principal_component_from_indicators(
+                date, periods=no_months, indicators=all_indicators)
+            x.append(indicators.values)
+
+        x_arr = np.array(x)
+        if flatten:
+            x_arr = x_arr.reshape(x_arr.shape[0], -1)
+
+        return x_arr
+
+    def get_formatted_targets(self):
+        days_to_recalculate = self.get_days_to_recalculate()
         df_countries, _ = self.get_etf_data()
+        acwi_weights = self.get_acwi_weights()
 
-        sql_handler = SqlAlquemySelectDataHandler()
-        max_report_date = sql_handler.get_max_pmi_report_day()
+        y = []
+        for i in range(0, len(days_to_recalculate)):
+            if i == len(days_to_recalculate) - 1:
+                data_period = df_countries.loc[days_to_recalculate[i]:]
+            else:
+                data_period = df_countries.loc[
+                    days_to_recalculate[i]:days_to_recalculate[i+1]]
+            i += 1
 
-        # Add extra 2 days for years 1999 to 2012 where PMI are mainly
-        # extrapolated from Bussiness Confidence Indicators
-        max_report_date[max_report_date.dt.day == 1] += pd.DateOffset(days=2)
+            year_str = str(data_period.index[0].year)
+            acwi_weights_year = acwi_weights.loc[year_str]
 
-        # Get next trading day after last PMI index is published
-        days_to_rebalance = []
-        for month_start in max_report_date.values:
-            from_date = month_start.astype(str)[:10]
+            try:
+                optimizer = PortfolioOptimizer()
+                w, constraints = optimizer.get_tight_constraints(
+                    acwi_weights_year)
+                optimal_portfolio = optimizer.get_optimal_portfolio(
+                    data_period, w, constraints)
+            except:
+                summed_weight = acwi_weights_year.sum(axis=1)
+                scaled_acwi_weights = acwi_weights_year.iloc[0] / \
+                    summed_weight.values[0]
+                optimal_portfolio = scaled_acwi_weights.round(3)
 
-            days_to_rebalance.append(df_countries[
-                from_date:].index.values[1].astype(str)[:10])
+            y.append(optimal_portfolio.values)
 
-        days_to_rebalance_series = pd.Series(days_to_rebalance,
-                                             name='Days to rebalance')
-        days_to_rebalance_series.to_csv(file_path)
-        return days_to_rebalance_series
+        y_arr = np.array(y)
+        return y_arr
+
+    def train_train_split(self, x, y, with_val=True):
+        test_split = int(0.8 * x.shape[0])
+
+        if with_val:
+            val_split = int(0.7 * x.shape[0])
+            x_train = x[:val_split]
+            y_train = y[:val_split]
+            x_val = x[val_split:test_split]
+            y_val = y[val_split:test_split]
+        else:
+            x_train = x[:test_split]
+            y_train = y[:test_split]
+            x_val = np.empty(0)
+            y_val = np.empty(0)
+
+        x_test = x[test_split:]
+        y_test = y[test_split:]
+
+        return x_train, y_train, x_val, y_val, x_test, y_test
