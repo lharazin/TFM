@@ -8,7 +8,7 @@
 #       (https://gmarti.gitlab.io/qfin/2018/10/02/hierarchical-risk-parity-part-1.html)
 
 
-import denoising_corr_matrix as dn
+import denoising_correlation_matrix as dn
 import numpy as np
 import pandas as pd
 import seaborn as sns
