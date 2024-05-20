@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
+from cvxpy.error import SolverError
 from SqlAlquemySelectDataHandler import SqlAlquemySelectDataHandler
 from sklearn.decomposition import PCA
 from PortfolioOptimizer import PortfolioOptimizer
@@ -223,6 +224,34 @@ class DataProvider:
             df_oecd_indicator.to_csv(file_path)
             return df_oecd_indicator
 
+        if (indicator == 'Monthly Returns'):
+            df_countries, _ = self.get_etf_data()
+            days_to_recalculate = self.get_days_to_recalculate(
+                months_to_skip=0)
+            df_returns = np.log(df_countries.loc[
+                days_to_recalculate]).diff().dropna()
+
+            df_returns.to_csv(file_path)
+            return df_returns
+
+        if (indicator == 'Economic Cycle X'):
+            pmi_indicator = 'Manufacturing PMI'
+            df_pmi_indicator = self.get_key_indicator_values(pmi_indicator)
+            index_moving_avg = df_pmi_indicator.ewm(com=1.5).mean().dropna()
+
+            economic_cycle_x = (index_moving_avg - 50)[1:]
+            economic_cycle_x.to_csv(file_path)
+            return economic_cycle_x
+
+        if (indicator == 'Economic Cycle Y'):
+            pmi_indicator = 'Manufacturing PMI'
+            df_pmi_indicator = self.get_key_indicator_values(pmi_indicator)
+            index_moving_avg = df_pmi_indicator.ewm(com=1.5).mean().dropna()
+
+            economic_cycle_y = index_moving_avg.diff().dropna()
+            economic_cycle_y.to_csv(file_path)
+            return economic_cycle_y
+
     def calculate_correlations_for_returns(self, month):
         if month.startswith('1999'):
             month = '1999-12'  # take minimum 1 year of data
@@ -314,9 +343,11 @@ class DataProvider:
             latest_known_period = pd.to_datetime(
                 f'{date_minus_2_months.year}-{date_minus_2_months.month}-1')
 
-        if (indicator == 'Manufacturing PMI' or indicator == 'Services PMI'):
-            months = 1 if date.day >= 6 else 2
-            date_minus_1_or_2_month = date - pd.DateOffset(months=months)
+        if (indicator == 'Manufacturing PMI' or
+                indicator == 'Services PMI' or
+                indicator == 'Economic Cycle X' or
+                indicator == 'Economic Cycle Y'):
+            date_minus_1_or_2_month = date - pd.DateOffset(months=1)
             latest_known_period = pd.to_datetime(
                 (f'{date_minus_1_or_2_month.year}-'
                  f'{date_minus_1_or_2_month.month}-1'))
@@ -330,6 +361,9 @@ class DataProvider:
             date_minus_3_months = date - pd.DateOffset(months=3)
             latest_known_period = pd.to_datetime(
                 f'{date_minus_3_months.year}-{date_minus_3_months.month}-1')
+
+        if (indicator == 'Monthly Returns'):
+            latest_known_period = date
 
         return df[:latest_known_period].iloc[-periods:]
 
@@ -381,7 +415,7 @@ class DataProvider:
             columns=self.selected_countries)
         return principal_component_df
 
-    def get_days_to_recalculate(self):
+    def get_days_to_recalculate(self, months_to_skip=12):
         file_path = 'cache/days_to_rebalance.csv'
         if os.path.isfile(file_path):
             df_cache = pd.read_csv(file_path, index_col=0)
@@ -410,7 +444,7 @@ class DataProvider:
             days_to_rebalance_series.to_csv(file_path)
 
         # Start after 1 year to have enough historic data for first rebalancing
-        days_to_recalculate = days_to_rebalance_series.iloc[12:]
+        days_to_recalculate = days_to_rebalance_series.iloc[months_to_skip:]
         days_to_recalculate = pd.DatetimeIndex(days_to_recalculate)
         return days_to_recalculate
 
@@ -453,7 +487,7 @@ class DataProvider:
                     acwi_weights_year)
                 optimal_portfolio = optimizer.get_optimal_portfolio(
                     data_period, w, constraints)
-            except:
+            except SolverError:
                 summed_weight = acwi_weights_year.sum(axis=1)
                 scaled_acwi_weights = acwi_weights_year.iloc[0] / \
                     summed_weight.values[0]
