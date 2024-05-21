@@ -61,7 +61,7 @@ TODO hasta 10/06:
 +   mejorar busqueda de hiperparametros con cross validacion
 +   añadir ciclo de investment clock y retornos pasados al modelo
 +   añadir comisiones al backtesting 0.1% - 0.3% al trade
--   comprobar restricciones al modelo de salida
++   comprobar restricciones al modelo de salida
 +   comprobar modelos de equiponderado, Markowitz y HRP como referencia en resultados
 -   comparacion de mejores modelos y selection modelo final
 -   escribir todos los modelos y resultados en TFM

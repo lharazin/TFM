@@ -518,3 +518,29 @@ class DataProvider:
         y_test = y[test_split:]
 
         return x_train, y_train, x_val, y_val, x_test, y_test
+
+    def apply_tight_contraints(self, predictions):
+        days_to_recalculate = self.get_days_to_recalculate()
+        df_countries, _ = self.get_etf_data()
+        acwi_weights = self.get_acwi_weights()
+        count = predictions.shape[0]
+
+        predictions_df = pd.DataFrame(predictions,
+                                      columns=df_countries.columns,
+                                      index=days_to_recalculate[-count:])
+        restricted_predictions_df = pd.DataFrame(
+            np.zeros(predictions.shape), columns=df_countries.columns,
+            index=days_to_recalculate[-count:])
+
+        for index, row in predictions_df.iterrows():
+            data_period = df_countries[:index].iloc[-22:-1]
+            year_str = str(index.year)
+            acwi_weights_year = acwi_weights.loc[year_str]
+            original_predictions = row.values
+
+            optimizer = PortfolioOptimizer()
+            restricted_predictions = optimizer.apply_tight_contraints(
+                original_predictions, data_period, acwi_weights_year)
+            restricted_predictions_df.loc[index, :] = restricted_predictions
+
+        return restricted_predictions_df.values
