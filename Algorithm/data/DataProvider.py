@@ -450,7 +450,8 @@ class DataProvider:
 
     def get_formatted_features(self, no_months=6, flatten=False):
         days_to_recalculate = self.get_days_to_recalculate()
-        all_indicators = self.key_indicators + self.additional_indicators
+        all_indicators = self.key_indicators + self.additional_indicators + [
+            'Monthly Returns']
 
         x = []
         for date in days_to_recalculate:

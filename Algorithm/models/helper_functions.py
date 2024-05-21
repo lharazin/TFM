@@ -150,11 +150,28 @@ def calculate_returns_for_predictions(predictions, dates_for_test,
                       predictions_df.values).sum(axis=1)
     total_returns = pd.Series(index=df_returns_test.index,
                               data=summed_returns)
+
+    # Deduce transaction fees from returns on days of rebalancing
+    transaction_fees = calculate_transaction_fees(predictions, dates_for_test)
+    total_returns[transaction_fees.index] -= transaction_fees
+
     cum_total_returns = (1 + total_returns).cumprod() - 1
     cum_total_returns.loc[dates_for_test[0]] = 0
     cum_total_returns.sort_index(inplace=True)
 
     return total_returns, cum_total_returns
+
+
+def calculate_transaction_fees(predictions, dates_for_test, fee_value=0.003):
+    turnover = pd.DataFrame(predictions, index=dates_for_test)
+    turnover = turnover.diff()  # Calculate delta/turnover
+
+    # Use complete weights for initial portfolio
+    turnover.iloc[0, :] = predictions[0]
+    turnover = turnover.abs().sum(axis=1)
+
+    transaction_fees = turnover*fee_value  # Transaction fees as pct
+    return transaction_fees
 
 
 def daily_to_annual_returns(daily_returns):
