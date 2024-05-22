@@ -465,7 +465,7 @@ class DataProvider:
 
         return x_arr
 
-    def get_formatted_targets(self):
+    def get_formatted_targets(self, contraint_degree=0):
         days_to_recalculate = self.get_days_to_recalculate()
         df_countries, _ = self.get_etf_data()
         acwi_weights = self.get_acwi_weights()
@@ -484,8 +484,16 @@ class DataProvider:
 
             try:
                 optimizer = PortfolioOptimizer()
-                w, constraints = optimizer.get_tight_constraints(
-                    acwi_weights_year)
+                if contraint_degree == 0:
+                    w, constraints = optimizer.get_tight_constraints(
+                        acwi_weights_year)
+                elif contraint_degree == 1:
+                    w, constraints = optimizer.get_normal_constraints(
+                        acwi_weights_year)
+                else:
+                    w, constraints = optimizer.get_loose_constraints(
+                        acwi_weights_year)
+
                 optimal_portfolio = optimizer.get_optimal_portfolio(
                     data_period, w, constraints)
             except SolverError:
@@ -519,7 +527,7 @@ class DataProvider:
 
         return x_train, y_train, x_val, y_val, x_test, y_test
 
-    def apply_tight_contraints(self, predictions):
+    def apply_output_contraints(self, predictions, contraint_degree=0):
         days_to_recalculate = self.get_days_to_recalculate()
         df_countries, _ = self.get_etf_data()
         acwi_weights = self.get_acwi_weights()
@@ -539,8 +547,18 @@ class DataProvider:
             original_predictions = row.values
 
             optimizer = PortfolioOptimizer()
-            restricted_predictions = optimizer.apply_tight_contraints(
-                original_predictions, data_period, acwi_weights_year)
+            if contraint_degree == 0:
+                w, constraints = optimizer.get_tight_constraints(
+                    acwi_weights_year)
+            elif contraint_degree == 1:
+                w, constraints = optimizer.get_normal_constraints(
+                    acwi_weights_year)
+            else:
+                w, constraints = optimizer.get_loose_constraints(
+                    acwi_weights_year)
+
+            restricted_predictions = optimizer.apply_output_contraints(
+                original_predictions, data_period, w, constraints)
             restricted_predictions_df.loc[index, :] = restricted_predictions
 
         return restricted_predictions_df.values

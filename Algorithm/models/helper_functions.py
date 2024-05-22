@@ -73,10 +73,10 @@ def show_loss(hd):
     plt.show()
 
 
-def run_full_backtesting(data_provider, x_test, models):
+def run_full_backtesting(data_provider, models):
     df_countries, benchmark = data_provider.get_etf_data()
     days_to_recalculate = data_provider.get_days_to_recalculate()
-    dates_for_test = days_to_recalculate[-x_test.shape[0]:]
+    dates_for_test = days_to_recalculate[-58:]
 
     dates_for_test.insert(29, df_countries.index.values[-1])
     df_prices_test = df_countries[dates_for_test[0]:]
@@ -91,7 +91,7 @@ def run_full_backtesting(data_provider, x_test, models):
     cum_benchmark_returns.sort_index(inplace=True)
     cum_total_returns_dict = {'Benchmark': cum_benchmark_returns}
 
-    for key, model in models.items():
+    for key, (model, x_test) in models.items():
         total_returns, cum_total_returns = calculate_returns_for_model(
             model, x_test, dates_for_test, df_returns_test)
 

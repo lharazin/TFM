@@ -168,11 +168,11 @@ class PortfolioOptimizer:
 
         return w, constraints
 
-    def apply_tight_contraints(self, predictions, data_period, acwi_weights):
+    def apply_output_contraints(self, predictions, data_period,
+                                w, constraints):
         returns = np.log(data_period).diff().dropna()
         sigma = returns.cov().values
 
-        w, constraints = self.get_tight_constraints(acwi_weights)
         objective = cp.Minimize(cp.quad_form(w - predictions, sigma))
         problem = cp.Problem(objective, constraints)
         problem.solve()
