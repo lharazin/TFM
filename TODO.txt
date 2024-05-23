@@ -20,7 +20,7 @@ Otras cosas implementadas:
 
 TODO despues de la tutoria de 30/04/2024:
 +   incluir mas indicadores
--   ajustar hiperparametros de los modelos mas prometedores
++   ajustar hiperparametros de los modelos mas prometedores
 +   empezar con la memoria
 +   comprobar diferentes restricciones y numero de meses
 
@@ -63,7 +63,7 @@ TODO hasta 10/06:
 +   añadir comisiones al backtesting 0.1% - 0.3% al trade
 +   comprobar restricciones al modelo de salida
 +   comprobar modelos de equiponderado, Markowitz y HRP como referencia en resultados
--   comparacion de mejores modelos y selection modelo final
++   comparacion de mejores modelos y selection modelo final
 -   escribir todos los modelos y resultados en TFM
 ->  TFM entregable (codigo y memoria)
 
