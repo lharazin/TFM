@@ -4,28 +4,24 @@ import matplotlib.pyplot as plt
 import time
 
 from keras.optimizers import Adam
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from keras.callbacks import ReduceLROnPlateau
 
 
 def train_and_evaluate_model(model, x_train, y_train,
                              x_val, y_val, x_test, y_test,
-                             epochs=200, learning_rate=1e-3,
-                             with_early_stopping=False, verbose=True):
+                             epochs=100, verbose=True,
+                             with_reduce_on_plateu=False):
     start_time = time.time()
 
-    model.compile(optimizer=Adam(learning_rate=learning_rate),
-                  loss='mean_squared_error')
+    model.compile(optimizer=Adam(), loss='mse')
     if verbose:
         model.summary()
         print()
 
     callbacks = []
-    if with_early_stopping:
-        callbacks.append(EarlyStopping(monitor='val_loss',
-                                       patience=100))
-
-    callbacks.append(ReduceLROnPlateau(monitor='val_loss',
-                                       patience=50, min_lr=1e-6))
+    if with_reduce_on_plateu:
+        callbacks.append(ReduceLROnPlateau(monitor='val_loss',
+                                           patience=50, min_lr=1e-6))
 
     hist = model.fit(x_train, y_train,
                      validation_data=(x_val, y_val),
