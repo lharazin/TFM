@@ -5,6 +5,8 @@ from cvxpy.error import SolverError
 from SqlAlquemySelectDataHandler import SqlAlquemySelectDataHandler
 from sklearn.decomposition import PCA
 from PortfolioOptimizer import PortfolioOptimizer
+import warnings
+warnings.filterwarnings('ignore')
 
 
 class DataProvider:

@@ -116,6 +116,7 @@ def run_full_backtesting(data_provider, models):
         else:
             calculate_metrics(total_returns, df_results, key)
 
+    df_results = df_results.astype(float).round(4)
     return df_results
 
 
