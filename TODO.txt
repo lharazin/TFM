@@ -64,7 +64,7 @@ TODO hasta 10/06:
 +   comprobar restricciones al modelo de salida
 +   comprobar modelos de equiponderado, Markowitz y HRP como referencia en resultados
 +   comparacion de mejores modelos y selection modelo final
--   escribir todos los modelos y resultados en TFM
++   escribir todos los modelos y resultados en TFM
 ->  TFM entregable (codigo y memoria)
 
 
