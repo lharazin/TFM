@@ -1,4 +1,4 @@
-# Code based on the method described in:
+# Code based on the methods described in:
 # "Machine Learning for Asset Managers", Marcos M. López de Prado , 2020
 # Some improvements and tests based on:
 # - janestreet-denoising-RMT, FERNANDO RAMACCIOTTI

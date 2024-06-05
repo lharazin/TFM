@@ -10,6 +10,10 @@ warnings.filterwarnings('ignore')
 
 
 class DataProvider:
+    """Comprehensive helper class used in all models. It encapsulates logic
+    for reading data from the database, filling missing data, preprocessing,
+    formatting and caching. Basically serves as a Data Access Layer.
+    """
 
     def __init__(self):
         self.selected_countries = [

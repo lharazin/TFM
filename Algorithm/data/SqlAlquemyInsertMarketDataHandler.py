@@ -4,6 +4,7 @@ import pandas as pd
 
 
 class SqlAlquemyInsertMarketDataHandler:
+    """ Class used to insert new Market Data records to the database. """
 
     def __init__(self):
         self.db_name = 'tfm-indicators'

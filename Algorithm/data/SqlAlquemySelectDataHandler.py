@@ -4,6 +4,7 @@ import pandas as pd
 
 
 class SqlAlquemySelectDataHandler:
+    """ Class used to read data from the database from various tables. """
 
     def __init__(self):
         self.db_name = 'tfm-indicators'

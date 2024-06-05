@@ -4,6 +4,9 @@ import cvxpy as cp
 
 
 class PortfolioOptimizer:
+    """ Class used to calculate optimal Max Sharpe portfolio using
+    cuadratic programming with additional constraints.
+    """
 
     def get_optimal_portfolio(self, data_period, w, constraints):
         returns = np.log(data_period).diff().dropna()
