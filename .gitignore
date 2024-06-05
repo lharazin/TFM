@@ -8,10 +8,7 @@ terraform.tfstate
 terraform.tfstate.backup
 terraform-provider-aws_v4.67.0_x5.exe
 
-Data/BIS_CentralBankRates/RawData/*.csv
 Data/chromedriver.exe
-Data/IMF_Stats/RawData/*.csv
-Data/WorldBankData_Stats/RawData/*.csv
 Data/~$Data Sources Coverage_ACWI.xlsx
 Data/IronIA_IndexFunds/Data/*.csv
 Data/IronIA_IndexFunds/harazinlt.json

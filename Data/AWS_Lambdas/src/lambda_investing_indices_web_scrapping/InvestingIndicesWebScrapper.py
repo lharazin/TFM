@@ -9,6 +9,8 @@ import os
 
 
 class InvestingIndicesWebScrapper:
+    """ Web scrapper class to read selected stock indices from Investing.com
+    web site using web scrapping with Selenium library. """
 
     def get_driver(self, linux):
         if linux:

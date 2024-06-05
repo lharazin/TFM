@@ -5,6 +5,11 @@ from SqlAlquemyInsertMarketDataHandler import SqlAlquemyInsertMarketDataHandler
 
 
 def handler(event, context):
+    """ Yahoo Finance Lambda – reads ETFs prices, stock indices values
+    and currency rates from API using yfinance library. Can be extended
+    to new instruments by simply adding new symbols to the database table
+    which will be included automatically in the next update. """
+
     yesterday = date.today() - timedelta(days=1)
     sql_handler = SqlAlquemyInsertMarketDataHandler()
     indicators = sql_handler.read_max_dates_by_symbols(source='Yahoo')

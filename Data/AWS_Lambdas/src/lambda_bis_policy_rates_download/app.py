@@ -4,6 +4,9 @@ from SqlAlquemyInsertMarketDataHandler import SqlAlquemyInsertMarketDataHandler
 
 
 def handler(event, context):
+    """ BIS Lambda – reads central bank rates from Bank of
+    International Settlement API. """
+
     start_date = '2023-09-01'
     end_date = str(date.today())
 

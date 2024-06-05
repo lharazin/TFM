@@ -3,6 +3,7 @@ import os
 
 
 class SqlAlquemyInsertIndicatorsHandler:
+    """ Data access class to save records to EconomicIndicators table. """
 
     def __init__(self):
         self.db_name = 'tfm-indicators'

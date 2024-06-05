@@ -4,6 +4,8 @@ import pandas as pd
 
 
 class SqlAlquemySelectHandler:
+    """ Data access class to read records from
+    InvestingEconomicCalendar table. """
 
     def __init__(self):
         self.db_name = 'tfm-indicators'

@@ -4,6 +4,7 @@ import pandas as pd
 
 
 class SqlAlquemyInsertMarketDataHandler:
+    """ Data access class to save records to MarketData table. """
 
     def __init__(self):
         self.db_name = 'tfm-indicators'

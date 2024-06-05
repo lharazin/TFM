@@ -6,6 +6,8 @@ load_dotenv()
 
 
 class InvestingCalendarPreprocessor:
+    """ Class used to extract and process macroeconomic indicators from
+    economic calendar download from Investing.com web site. """
 
     def __init__(self):
         self.all_countries = [

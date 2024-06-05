@@ -2,6 +2,8 @@ from oecd_api import get_oecd_data
 
 
 def download_all_oecd_indicators():
+    """ Helper methods to read all OECD indicators in one funtion. """
+
     # 2. GDP
     get_oecd_data(indicator='QNA', subject='B1_GE', measure='GYSA', freq='Q',
                   countries_before_subject=True,

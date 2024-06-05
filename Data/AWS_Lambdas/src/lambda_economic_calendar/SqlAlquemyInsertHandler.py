@@ -3,6 +3,8 @@ import os
 
 
 class SqlAlquemyInsertHandler:
+    """ Data access class to save records to
+    InvestingEconomicCalendar table. """
 
     def __init__(self):
         self.db_name = 'tfm-indicators'

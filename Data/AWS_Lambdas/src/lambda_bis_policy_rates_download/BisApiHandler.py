@@ -4,6 +4,7 @@ import xmltodict
 
 
 class BisApiHandler:
+    """ API Handler class to get central bank rates from BIS API. """
 
     def get_data(self, start_date, end_date):
         url = ('https://stats.bis.org/api/v1/data/BIS%2CWS_CBPOL_D%2C1.0/'

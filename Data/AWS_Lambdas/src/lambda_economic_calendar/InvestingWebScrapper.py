@@ -9,6 +9,8 @@ import os
 
 
 class InvestingWebScrapper:
+    """ Web Scrapper class to read economic calendar data from Investing.com
+    web site using web scrapping with Selenium library. """
 
     def __init__(self, linux=False):
         self.all_countries = [

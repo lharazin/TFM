@@ -3,6 +3,9 @@ from SqlAlquemyInsertHandler import SqlAlquemyInsertHandler
 
 
 def handler(event, context):
+    """ Economic Calendar Lambda – uses web scrapping techniques with
+    Selenium to read all the indicators from the previous day. """
+
     print('Starting lambda')
     sql_handler = SqlAlquemyInsertHandler()
     web_scrapper = InvestingWebScrapper(linux=True)

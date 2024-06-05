@@ -5,6 +5,11 @@ from InvestingIndicesWebScrapper import InvestingIndicesWebScrapper
 
 
 def handler(event, context):
+    """ Investing Stock Indices Lambda uses web scrapping techniques
+    with Selenium to read 8 stock indices from Investing.com web page that are
+    not available in Yahoo Finance. They were used for synthetic ETFs data.
+    """
+
     yesterday = date.today() - timedelta(days=1)
     sql_handler = SqlAlquemyInsertMarketDataHandler()
     web_scrapper = InvestingIndicesWebScrapper()

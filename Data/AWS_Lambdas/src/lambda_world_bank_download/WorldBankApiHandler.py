@@ -4,6 +4,7 @@ from SqlAlquemyInsertIndicatorsHandler import SqlAlquemyInsertIndicatorsHandler
 
 
 class WorldBankApiHandler:
+    """ API Handler class to indicators from WorldBankData API. """
 
     def __init__(self):
         self.country_codes = {
