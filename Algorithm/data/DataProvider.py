@@ -5,6 +5,7 @@ from cvxpy.error import SolverError
 from SqlAlquemySelectDataHandler import SqlAlquemySelectDataHandler
 from sklearn.decomposition import PCA
 from PortfolioOptimizer import PortfolioOptimizer
+from InvestingCalendarPreprocessor import InvestingCalendarPreprocessor
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -285,7 +286,12 @@ class DataProvider:
 
             for date in missing_dates:
                 month = f'{date:%Y-%m}'
-                corr = self.corr_dict[month]
+
+                if month in self.corr_dict.keys():
+                    corr = self.corr_dict[month]
+                else:
+                    corr = self.calculate_correlations_for_returns(month)
+                    self.corr_dict[month] = corr
 
                 most_corr_countries = corr[country].sort_values()[
                     ::-1][1:].index
@@ -418,6 +424,37 @@ class DataProvider:
         principal_component_df = pd.DataFrame(
             principal_component_arr,
             index=range(periods*n_components),
+            columns=self.selected_countries)
+        return principal_component_df
+
+    def calculate_principal_component_from_calendar(
+            self, read_date, no_months):
+        preprocessor = InvestingCalendarPreprocessor()
+        indicators_norm = pd.DataFrame(
+            data=np.zeros((no_months*len(self.selected_countries),
+                           len(preprocessor.key_indicators))),
+            columns=preprocessor.key_indicators)
+
+        for indicator in preprocessor.key_indicators:
+            df = preprocessor.read_key_indicator(indicator)
+            is_quarterly = (indicator == 'GDP Annual Growth Rate' or
+                            indicator == 'GDP Growth Rate')
+            df_recent = preprocessor.get_most_recent_values(
+                df, read_date, no_months, is_quarterly)
+
+            df_recent_filled = self.fill_missing_values(df_recent)
+            df_normalized = self.normilize_dataframe(df_recent_filled)
+            indicators_norm.loc[:, indicator] = (
+                df_normalized.values.reshape(-1))
+
+        pca = PCA(n_components=1)
+        principal_component = pca.fit_transform(indicators_norm)
+
+        principal_component_arr = principal_component.reshape(
+            -1, len(self.selected_countries))
+        principal_component_df = pd.DataFrame(
+            principal_component_arr,
+            index=range(no_months),
             columns=self.selected_countries)
         return principal_component_df
 

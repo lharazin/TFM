@@ -68,6 +68,37 @@ class SqlAlquemySelectDataHandler:
         df = pd.DataFrame(records)
         return df
 
+    def read_calendar_indicator(self, indicator, alt_indicator='',
+                                limit_date=''):
+        records = []
+
+        if alt_indicator != '':
+            alt_indicator = f" OR [Indicator] LIKE '%{alt_indicator}%' "
+
+        if limit_date != '':
+            limit_date = f" AND [ReportDateTime] >= '{limit_date}' "
+
+        with self.engine.connect() as connection:
+            result = connection.execute(sal.text(f"""
+                SELECT [Id]
+                    ,[ReportDateTime]
+                    ,[Country]
+                    ,[Currency]
+                    ,[Indicator]
+                    ,[Actual]
+                    ,[Forecast]
+                    ,[Previous]
+                FROM [dbo].[InvestingEconomicCalendar]
+                WHERE ([Indicator] LIKE '%{indicator}%' {alt_indicator})
+                    {limit_date}
+                ORDER BY [ReportDateTime]
+            """))
+            for row in result:
+                records.append(row)
+
+        df = pd.DataFrame(records)
+        return df
+
     def get_max_pmi_report_day(self):
         records = []
         with self.engine.connect() as connection:
