@@ -28,13 +28,15 @@ class SqlAlquemySelectDataHandler:
         df.index.name = None
         return df.loc[:, ['Code', 'Description']]
 
-    def read_market_data(self, symbol):
+    def read_market_data(self, symbol, limit_date=''):
         records = []
         with self.engine.connect() as connection:
+            if limit_date != '':
+                limit_date = f" AND [Date] >= '{limit_date}' "
             result = connection.execute(sal.text(f"""
                 SELECT [Date], [Value]
                 FROM [dbo].[MarketData]
-                WHERE SymbolCode = '{symbol}'
+                WHERE SymbolCode = '{symbol}' {limit_date}
                 ORDER BY [Date]
             """))
             for row in result:
@@ -43,7 +45,8 @@ class SqlAlquemySelectDataHandler:
         df = pd.DataFrame(records)
         df.index = pd.to_datetime(df['Date'])
         df.index.name = None
-        print(len(df), 'market data read')
+        if limit_date == '':
+            print(len(df), 'market data read')
         return df['Value'].astype(float)
 
     def get_indicator_id(self, name, source):

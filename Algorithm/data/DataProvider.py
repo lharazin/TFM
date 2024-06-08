@@ -270,6 +270,27 @@ class DataProvider:
         corr = df_returns.corr()
         return corr
 
+    def initialize_current_correlations(self, limit_date, read_date):
+        sql_handler = SqlAlquemySelectDataHandler()
+        etfs_in_usd = sql_handler.read_market_symbols('ETF in USD')
+        df_etfs_recent = pd.DataFrame(
+            index=pd.date_range(limit_date, read_date, freq='B'),
+            columns=self.selected_countries)
+
+        for country in self.selected_countries:
+            symbol = etfs_in_usd.loc[country]['Code']
+            df_etfs_recent.loc[:, country] = sql_handler.read_market_data(
+                symbol, limit_date)
+
+        df_etfs_recent = df_etfs_recent.dropna().astype(float)
+        corr_recent = df_etfs_recent.corr()
+
+        period = pd.period_range(limit_date, read_date, freq='M')
+        period = period.to_timestamp()
+        for date in period:
+            month = f'{date:%Y-%m}'
+            self.corr_dict[month] = corr_recent
+
     def fill_missing_values(self, df):
         # Cache corr matrix to avoid recalculating multiple times
         if len(self.corr_dict) == 0:
@@ -428,15 +449,15 @@ class DataProvider:
         return principal_component_df
 
     def calculate_principal_component_from_calendar(
-            self, read_date, no_months):
+            self, read_date, no_months, limit_date=''):
         preprocessor = InvestingCalendarPreprocessor()
         indicators_norm = pd.DataFrame(
             data=np.zeros((no_months*len(self.selected_countries),
-                           len(preprocessor.key_indicators))),
-            columns=preprocessor.key_indicators)
+                           len(self.key_indicators))),
+            columns=self.key_indicators)
 
-        for indicator in preprocessor.key_indicators:
-            df = preprocessor.read_key_indicator(indicator)
+        for indicator in self.key_indicators:
+            df = preprocessor.read_key_indicator(indicator, limit_date)
             is_quarterly = (indicator == 'GDP Annual Growth Rate' or
                             indicator == 'GDP Growth Rate')
             df_recent = preprocessor.get_most_recent_values(

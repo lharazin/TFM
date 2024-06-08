@@ -82,7 +82,7 @@ class InvestingCalendarPreprocessor:
                                  ' (May)', ' (Jun)', ' (Jul)', ' (Aug)',
                                  ' (Sep)', ' (Oct)', ' (Nov)', ' (Dec)']
 
-        self.key_indicators = [
+        self.key_calendar_indicators = [
             'GDP Annual Growth Rate',
             'GDP Growth Rate',
             'Unemployment Rate',

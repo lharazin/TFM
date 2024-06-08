@@ -18,3 +18,4 @@ Data/MSCI/msci_indexes.csv
 Algorithm/data/cache
 Algorithm/data/tuning
 Algorithm/data/model.png
+Algorithm/data/daily_dnn_model_from_calendar.keras
