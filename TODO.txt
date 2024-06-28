@@ -68,8 +68,20 @@ TODO hasta 10/06:
 ->  TFM entregable (codigo y memoria)
 
 
+TODO hasta 20/06:
++   intentar varios metodos de data aumentation
++   implementar despliege de prueba con pipeline de data processing en una nueva Lambda
++   preparar la presentacion
+
+
 TODO hasta 30/06:
--   intentar varios metodos de data aumentation
--   implementar despliege de prueba con pipeline de data processing en una nueva Lambda
--   actualizar TFM con sugerencias finales de Fernando
--   preparar la presentacion
+Memoria:
++	justificar parrafos
++	mas indtroduction, descripcion de capitulos breve
++	cloud en capitulo separado
++	mas conclusiones en supcapitulos + tabla con todos los modelos
+
+Presentacion:
++   objetivos mas breve
++   un slide de ejemplos de x e y
++	cloud por separado como en la memoria
