@@ -1,11 +1,38 @@
-#### Master of Science Thesis
-# Optimizing Global Portfolio Weights using Artificial Intelligence and Macroeconomic Analysis
-#### Master in Artificial Intelligence and Quantum Computing Applied to Financial Markets, 11th edition (mIA-X)
-#### Lukasz Tadeusz Harazin
+<h2 align="center">Master of Science Thesis</h2>
+<h1 align="center">Optimizing Global Portfolio Weights using Artificial Intelligence and Macroeconomic Analysis</h3>
+<h4 align="center">Master in Artificial Intelligence and Quantum Computing Applied to Financial Markets, 11th edition (mIA-X), Instituto BME</h4>
+<h3 align="center">Lukasz Harazin</h3>
+<h4 align="center">2024</h4>
 
 ---
 
-## Content of the directory
+### Summary of the Thesis
+
+The objective of this thesis was to implement an investment algorithm that would optimize global portfolio allocation using macroeconomic analysis. Processing multiple indicators, an artificial intelligence model would indicate in which countries it would be advantageous to allocate more capital based on promising trends in their economies. That could provide an alternative to passively managed funds tracking performances of broad global indexes like MSCI All Country World Index (ACWI).
+
+In this thesis, extensive research has been performed to examine all available open data providers, identify relevant indicators, and establish data pipelines utilizing cloud services to collect data from a variety of sources. All indicators and market data have been stored in a database, and the data has undergone extensive pre-processing to fill in missing values and format the data into features suitable for model training. Furthermore, target values have been computed as optimal Max Sharpe portfolios using quadratic optimization. Cloud infrastructure diagram for data collection and data storage is presented below.
+
+<p align="center"><img src="/Img/cloud_diagram.png" title="Data Architecture Diagram" /></p>
+
+Subsequently, a variety of neural network architectures and machine learning models have been developed and validated. All models have also been backtested to eliminate the least performing models and select the most promising ones for further hyperparameters tuning. In the end, the top-performing model using Dense Neural Network has managed to achieve promising results, albeit without surpassing the benchmark.
+
+<p align="center"><img src="/Img/returns_comparison.png" title="Returns Comparison" /></p>
+
+Upon analysis of the results, it is observed that the final Dense Neural Network (DNN) Model tracks the Benchmark with relative closeness but yielding slightly lower returns. However, it does exceed the returns from the traditional portfolio optimization method using Risk Parity.
+
+<p align="center"><img src="/Img/backtesting_metrics.png" title="Backtesting Metrics" /></p>
+
+Comparing backtesting metrics, we can observe that the Final DNN Model yields an annual return of 6.21%, which is slightly lower than the Benchmark's annual return of 7.68%. The model also exhibits an annual volatility of 0.2015, marginally lower than the Benchmark's 0.2033. When considering risk-adjusted indicators such as Sharpe Ratio, Sortino Ratio, Max Drawdown, Max Time Under Water, Calmar Ratio, and Information Ratio, the Final DNN Model generally underperforms the Benchmark, indicating a lower risk-adjusted return. 
+
+There are several potential explanations for the underperformance of the developed algorithm. One limitation of the model is the lag in the indicators. Although various indicators are released throughout the month, they are only incorporated during the rebalancing of the following month, well after the market has already included that information in the prices of the assets. Additionally, there isn't always a direct correlation between economic indicators and market performance. For example, a robust economy could potentially lead to higher interest rates, which could adversely affect markets. Lastly, while macroeconomic data offers a snapshot of the current state of the economy, its predictive power for future market movements is limited. Numerous other factors, such as investor sentiment, political events, and technological changes, also influence markets. 
+
+Further development of the algorithm could incorporate more complete economic calendar from paid data providers. That could improve data quality and allow to produce more robust training data with constantly changing indicators. Furthermore, the algorithm could be redesigned to run on the daily basis, executing rebalancing when given turnover threshold is achieved rather than waiting for static monthly rebalancing at the beginning of each month.
+
+In conclusion, although the proposed objectives were not fully realized, the research conducted in this thesis has yielded invaluable insights. It has demonstrated the comprehensive process of developing an investment algorithm, with meticulous attention to details such as an in-depth analysis of the benchmark to circumvent survivorship bias, and the inclusion of transaction fees to achieve the most realistic results. This has been a truly intriguing and thought-provoking endeavour.
+
+---
+
+### Content of the directory
 
 1. [Algorithm](Algorithm) - All code ralated with data preparation, model definition, training, validation and backtesting.<br>
 1.1. [Algorithm/classical_models](Algorithm/classical_models) - Code for portfolio rebalancing and backtesting for traditional portfoio optimization methods.<br>
