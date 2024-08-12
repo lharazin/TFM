@@ -12,6 +12,7 @@ Data/chromedriver.exe
 Data/~$Data Sources Coverage_ACWI.xlsx
 Data/~$Cataloged_Indicators.xlsx
 Data/Investing_EconomicCalendar/investing_economic_calendar_2024-01-05.csv
+Data/Investing_EconomicCalendar/investing_economic_calendar_2024-08-12.csv
 Data/MSCI/msci_indexes.csv
 Algorithm/data/tuning
 Algorithm/data/daily_dnn_model_from_calendar.weights.h5
